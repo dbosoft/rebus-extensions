@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33205.214
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rebus.Configuration.Abstractions", "C:\Users\fwagner\source\Repos\dbosoft\rebus-extensions\src\Rebus.Configuration\Rebus.Configuration.Abstractions\Rebus.Configuration.Abstractions.csproj", "{87E2B344-CA20-41ED-B342-2AE3E62F96D5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rebus.Configuration.Selectors", "src\Rebus.Configuration\Rebus.Configuration.Selectors\Rebus.Configuration.Selectors.csproj", "{109CC204-CEBF-49BF-861A-DC357B58414C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rebus.Configuration.Selectors.Tests", "test\Rebus.Configuration\Rebus.Configuration.Selectors.Tests\Rebus.Configuration.Selectors.Tests.csproj", "{5275CBD9-38D7-49DF-8193-B54E92733CEC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{87E2B344-CA20-41ED-B342-2AE3E62F96D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87E2B344-CA20-41ED-B342-2AE3E62F96D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87E2B344-CA20-41ED-B342-2AE3E62F96D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87E2B344-CA20-41ED-B342-2AE3E62F96D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{109CC204-CEBF-49BF-861A-DC357B58414C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{109CC204-CEBF-49BF-861A-DC357B58414C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{109CC204-CEBF-49BF-861A-DC357B58414C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{109CC204-CEBF-49BF-861A-DC357B58414C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5275CBD9-38D7-49DF-8193-B54E92733CEC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5275CBD9-38D7-49DF-8193-B54E92733CEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5275CBD9-38D7-49DF-8193-B54E92733CEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5275CBD9-38D7-49DF-8193-B54E92733CEC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4FBA61CB-2308-47F7-B294-B57828090CD3}
+	EndGlobalSection
+EndGlobal
