@@ -14,7 +14,7 @@ public class DefaultTimeoutsStoreSelector: GenericRebusSelectorBase<ITimeoutMana
     }
 
     public override string[] AcceptedConfigTypes => new []{"inmemory" };
-    public override string ConfigurationName => "bus";
+    public override string ConfigurationName => "store";
 
     protected override void ConfigureByType(string busType, StandardConfigurer<ITimeoutManager> configurer)
     {

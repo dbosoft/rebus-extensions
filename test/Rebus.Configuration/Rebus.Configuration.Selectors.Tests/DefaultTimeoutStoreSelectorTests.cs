@@ -10,7 +10,7 @@ public class DefaultTimeoutStoreSelectorTests : SelectorTests
     {
         var deps = SetupDeps(new Dictionary<string, string>
         {
-            { "bus:type", "inmemory" }
+            { "store:type", "inmemory" }
         });
 
 

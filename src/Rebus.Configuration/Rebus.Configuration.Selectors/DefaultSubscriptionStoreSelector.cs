@@ -23,7 +23,7 @@ public class DefaultSubscriptionStoreSelector : GenericRebusSelectorBase<ISubscr
     }
 
     public override string[] AcceptedConfigTypes => new[] { "inmemory", "filesystem" };
-    public override string ConfigurationName => "bus";
+    public override string ConfigurationName => "store";
 
 
     protected override void ConfigureByType(string busType, StandardConfigurer<ISubscriptionStorage> configurer)

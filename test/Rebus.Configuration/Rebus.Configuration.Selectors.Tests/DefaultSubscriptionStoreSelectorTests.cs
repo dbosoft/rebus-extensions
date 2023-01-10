@@ -24,7 +24,7 @@ public class DefaultSubscriptionStoreSelectorTests : SelectorTests
     {
         var deps = SetupDeps(new Dictionary<string, string>
         {
-            { "bus:type", "invalid" }
+            { "store:type", "invalid" }
         });
 
         var selector =
@@ -40,7 +40,7 @@ public class DefaultSubscriptionStoreSelectorTests : SelectorTests
     {
         var deps = SetupDeps(new Dictionary<string, string>
         {
-            { "bus:type", "inmemory" }
+            { "store:type", "inmemory" }
         });
 
 
@@ -56,8 +56,8 @@ public class DefaultSubscriptionStoreSelectorTests : SelectorTests
     {
         var deps = SetupDeps(new Dictionary<string, string>
         {
-            { "bus:type", "filesystem" },
-            { "bus:subscriptionFile", "%TEMP%\\subfile" }
+            { "store:type", "filesystem" },
+            { "store:subscriptionFile", "%TEMP%\\subfile" }
         });
 
 
@@ -73,8 +73,8 @@ public class DefaultSubscriptionStoreSelectorTests : SelectorTests
     {
         var deps = SetupDeps(new Dictionary<string, string>
         {
-            { "bus:type", "filesystem" },
-            { "bus:path", "%TEMP" }
+            { "store:type", "filesystem" },
+            { "store:path", "%TEMP" }
         });
 
 
@@ -90,7 +90,7 @@ public class DefaultSubscriptionStoreSelectorTests : SelectorTests
     {
         var deps = SetupDeps(new Dictionary<string, string>
         {
-            { "bus:type", "filesystem" },
+            { "store:type", "filesystem" },
         });
 
 
