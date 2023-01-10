@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="D:\Source\Repos\dbosoft\rebus-extensions\src\Rebus.Configuration\Rebus.Configuration.Selectors\Rebus.Configuration.Selectors.csproj" />
+    <ProjectReference Include="..\Rebus.Configuration.Selectors\Rebus.Configuration.Selectors.csproj" />
   </ItemGroup>
 
 </Project>
