@@ -1,4 +1,7 @@
 ﻿using Rebus.Config;
+using Rebus.DataBus;
+using Rebus.Subscriptions;
+using Rebus.Timeouts;
 
 namespace Dbosoft.Rebus.Configuration
 {
@@ -6,7 +9,7 @@ namespace Dbosoft.Rebus.Configuration
     {
 
         public static RebusConfigurer DataBus(this RebusConfigurer rebusConfigurer,
-            IRebusDataBusConfigurer configurer)
+            IGenericRebusConfigurer<IDataBusStorage> configurer)
         {
             rebusConfigurer.DataBus(configurer.Configure);
             return rebusConfigurer;
@@ -14,14 +17,14 @@ namespace Dbosoft.Rebus.Configuration
 
 
         public static RebusConfigurer Timeouts(this RebusConfigurer rebusConfigurer,
-            IRebusTimeoutConfigurer configurer)
+            IGenericRebusConfigurer<ITimeoutManager> configurer)
         {
             rebusConfigurer.Timeouts(configurer.Configure);
             return rebusConfigurer;
         }
 
         public static RebusConfigurer Subscriptions(this RebusConfigurer rebusConfigurer,
-            IRebusSubscriptionConfigurer configurer)
+            IGenericRebusConfigurer<ISubscriptionStorage> configurer)
         {
             rebusConfigurer.Subscriptions(configurer.Configure);
             return rebusConfigurer;

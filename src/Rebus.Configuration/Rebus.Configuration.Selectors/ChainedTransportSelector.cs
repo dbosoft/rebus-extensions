@@ -10,12 +10,12 @@ using JetBrains.Annotations;
 namespace Dbosoft.Rebus.Configuration;
 
 [PublicAPI]
-public class ChainedRebusTransportSelector : RebusTransportSelectorBase
+public class ChainedTransportSelector : RebusTransportSelectorBase
 {
     private readonly ILogger _log;
     private readonly IDictionary<string, List<RebusTransportSelectorBase>> _selectors = new Dictionary<string, List<RebusTransportSelectorBase>>();
 
-    public ChainedRebusTransportSelector(IConfiguration configuration, ILogger log,
+    public ChainedTransportSelector(IConfiguration configuration, ILogger log,
         IEnumerable<RebusTransportSelectorBase> selectors) : base(configuration, log)
     {
         _log = log;
@@ -23,16 +23,14 @@ public class ChainedRebusTransportSelector : RebusTransportSelectorBase
 
         if (!selectorsArray.Any())
         {
-            AcceptedConfigTypes = Array.Empty<string>();
-            ConfigurationName = string.Empty;
-            return;
+            throw new ArgumentException("Selector list is empty", nameof(selectors));
         }
 
         var names = selectorsArray.Select(x => x.ConfigurationName).Distinct().ToArray();
         if (names.Length > 1)
         {
-            throw new InvalidOperationException(
-                $"All rebus selectors in a chained selector have to use the same configuration name. Found names: {string.Join(',', names)}");
+            throw new ArgumentException(
+                $"All rebus selectors in a chained selector have to use the same configuration name. Found names: {string.Join(',', names)}", nameof(selectors));
 
         }
 
@@ -60,8 +58,6 @@ public class ChainedRebusTransportSelector : RebusTransportSelectorBase
 
     protected override void ConfigureBusTypeAsOneWayClient(string busType, StandardConfigurer<ITransport> configurer)
     {
-        if (!_selectors.ContainsKey(busType))
-            return;
 
         foreach (var selector in _selectors[busType])
         {
@@ -82,8 +78,6 @@ public class ChainedRebusTransportSelector : RebusTransportSelectorBase
 
     protected override void ConfigureBusType(string busType, string queueName, StandardConfigurer<ITransport> configurer)
     {
-        if (!_selectors.ContainsKey(busType))
-            return;
 
         foreach (var selector in _selectors[busType])
         {

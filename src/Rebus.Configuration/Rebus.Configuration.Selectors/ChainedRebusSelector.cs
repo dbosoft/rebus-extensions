@@ -23,16 +23,15 @@ public class ChainedRebusSelector<TConfigure>: GenericRebusSelectorBase<TConfigu
 
         if (!selectorsArray.Any())
         {
-            AcceptedConfigTypes = Array.Empty<string>();
-            ConfigurationName = string.Empty;
-            return;
+            throw new ArgumentException("Selector list is empty", nameof(selectors));
+
         }
 
         var names = selectorsArray.Select(x => x.ConfigurationName).Distinct().ToArray();
         if (names.Length > 1)
         {
-            throw new InvalidOperationException(
-                $"All rebus selectors in a chained selector have to use the same configuration name. Found names: {string.Join(',', names)}");
+            throw new ArgumentException(
+                $"All rebus selectors in a chained selector have to use the same configuration name. Found names: {string.Join(',', names)}", nameof(selectors));
 
         }
 
@@ -62,9 +61,6 @@ public class ChainedRebusSelector<TConfigure>: GenericRebusSelectorBase<TConfigu
 
     protected override void ConfigureByType(string type, StandardConfigurer<TConfigure> configurer)
     {
-        if (!_selectors.ContainsKey(type))
-            return;
-
         foreach (var selector in _selectors[type])
         {
             _log.LogTrace("Trying to configure rebus with selector {selectorType}", selector.GetType());
