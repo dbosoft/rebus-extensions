@@ -123,7 +123,7 @@ public class ChainedRebusSelectorTests : SelectorTests
     }
 
 
-    public class DummySelector : GenericRebusSelectorBase<IDataBusStorage>, IRebusDataBusConfigurer
+    public class DummySelector : GenericRebusSelectorBase<IDataBusStorage>
     {
         private readonly bool _fails;
 

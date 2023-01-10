@@ -10,7 +10,7 @@ using Rebus.DataBus.InMem;
 namespace Dbosoft.Rebus.Configuration;
 
 [PublicAPI]
-public class DefaultRebusDataBusSelector : GenericRebusSelectorBase<IDataBusStorage>, IRebusDataBusConfigurer
+public class DefaultRebusDataBusSelector : GenericRebusSelectorBase<IDataBusStorage>
 {
     private readonly InMemDataStore _dataStore;
 

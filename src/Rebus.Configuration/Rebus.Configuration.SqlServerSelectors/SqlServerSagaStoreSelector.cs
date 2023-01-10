@@ -6,7 +6,7 @@ using Rebus.Sagas;
 
 namespace Dbosoft.Rebus.Configuration;
 
-public class SqlServerSagaStoreSelector : SqlServerSelectorBase<ISagaStorage>, IRebusSagaConfigurer
+public class SqlServerSagaStoreSelector : SqlServerSelectorBase<ISagaStorage>
 {
     private readonly IOptions<SqlServerSagaStoreOptions> _options;
 

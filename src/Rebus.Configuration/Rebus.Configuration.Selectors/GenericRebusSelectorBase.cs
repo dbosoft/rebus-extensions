@@ -6,7 +6,7 @@ using Rebus.Config;
 
 namespace Dbosoft.Rebus.Configuration;
 
-public abstract class GenericRebusSelectorBase<TConfigurer> : RebusSelectorBase, IGenericRebusConfigurer<TConfigurer>
+public abstract class GenericRebusSelectorBase<TConfigurer> : RebusSelectorBase, IRebusConfigurer<TConfigurer>
 {
     private readonly ILogger _log;
 

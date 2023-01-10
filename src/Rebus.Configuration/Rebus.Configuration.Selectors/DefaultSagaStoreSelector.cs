@@ -10,7 +10,7 @@ using Rebus.Sagas;
 namespace Dbosoft.Rebus.Configuration;
 
 [PublicAPI]
-public class DefaultSagaStoreSelector : GenericRebusSelectorBase<ISagaStorage>, IRebusSagaConfigurer
+public class DefaultSagaStoreSelector : GenericRebusSelectorBase<ISagaStorage>
 {
     
 

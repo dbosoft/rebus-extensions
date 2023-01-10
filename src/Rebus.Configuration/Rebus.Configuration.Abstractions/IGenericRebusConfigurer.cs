@@ -2,7 +2,7 @@
 
 namespace Dbosoft.Rebus.Configuration;
 
-public interface IGenericRebusConfigurer<T>
+public interface IRebusConfigurer<T>
 {
     void Configure(StandardConfigurer<T> configurer);
 }

@@ -11,7 +11,7 @@ using Rebus.Subscriptions;
 namespace Dbosoft.Rebus.Configuration;
 
 [PublicAPI]
-public class DefaultSubscriptionStoreSelector : GenericRebusSelectorBase<ISubscriptionStorage>, IRebusSubscriptionConfigurer
+public class DefaultSubscriptionStoreSelector : GenericRebusSelectorBase<ISubscriptionStorage>
 {
     private readonly InMemorySubscriberStore _store;
     

@@ -10,21 +10,21 @@ namespace Dbosoft.Rebus.Configuration
     {
 
         public static RebusConfigurer DataBus(this RebusConfigurer rebusConfigurer,
-            IGenericRebusConfigurer<IDataBusStorage> configurer)
+            IRebusConfigurer<IDataBusStorage> configurer)
         {
             rebusConfigurer.DataBus(configurer.Configure);
             return rebusConfigurer;
         }
 
         public static RebusConfigurer Timeouts(this RebusConfigurer rebusConfigurer,
-            IGenericRebusConfigurer<ITimeoutManager> configurer)
+            IRebusConfigurer<ITimeoutManager> configurer)
         {
             rebusConfigurer.Timeouts(configurer.Configure);
             return rebusConfigurer;
         }
 
         public static RebusConfigurer Subscriptions(this RebusConfigurer rebusConfigurer,
-            IGenericRebusConfigurer<ISubscriptionStorage> configurer)
+            IRebusConfigurer<ISubscriptionStorage> configurer)
         {
             rebusConfigurer.Subscriptions(configurer.Configure);
             return rebusConfigurer;
@@ -45,7 +45,7 @@ namespace Dbosoft.Rebus.Configuration
         }
 
         public static RebusConfigurer Sagas(this RebusConfigurer rebusConfigurer,
-            IGenericRebusConfigurer<ISagaStorage> configurer)
+            IRebusConfigurer<ISagaStorage> configurer)
         {
             rebusConfigurer.Sagas(configurer.Configure);
             return rebusConfigurer;

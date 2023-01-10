@@ -6,7 +6,7 @@ using Rebus.Timeouts;
 
 namespace Dbosoft.Rebus.Configuration;
 
-public class DefaultTimeoutsStoreSelector: GenericRebusSelectorBase<ITimeoutManager>, IRebusTimeoutConfigurer
+public class DefaultTimeoutsStoreSelector: GenericRebusSelectorBase<ITimeoutManager>
 {
 
     public DefaultTimeoutsStoreSelector(IConfiguration configuration, ILogger log) : base(configuration, log)

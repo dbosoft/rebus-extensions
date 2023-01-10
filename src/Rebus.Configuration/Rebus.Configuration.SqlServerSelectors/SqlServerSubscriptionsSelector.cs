@@ -6,7 +6,7 @@ using Rebus.Subscriptions;
 
 namespace Dbosoft.Rebus.Configuration;
 
-public class SqlServerSubscriptionsSelector : SqlServerSelectorBase<ISubscriptionStorage>, IRebusSubscriptionConfigurer
+public class SqlServerSubscriptionsSelector : SqlServerSelectorBase<ISubscriptionStorage>
 {
     private readonly IOptions<SqlServerSubscriptionsStoreOptions> _options;
 

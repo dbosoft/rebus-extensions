@@ -6,7 +6,7 @@ using Rebus.Timeouts;
 
 namespace Dbosoft.Rebus.Configuration;
 
-public class SqlServerTimeoutsSelector: SqlServerSelectorBase<ITimeoutManager>, IRebusTimeoutConfigurer
+public class SqlServerTimeoutsSelector: SqlServerSelectorBase<ITimeoutManager>
 {
     private readonly IOptions<SqlServerTimeoutsStoreOptions> _options;
 
