@@ -16,7 +16,7 @@ public class SqlServerDataBusSelector : SqlServerSelectorBase<IDataBusStorage>
         _options = options;
     }
 
-    public override string ConfigurationName => "store";
+    public override string ConfigurationName => "databus";
     protected override void ConfigureSqlServer(StandardConfigurer<IDataBusStorage> configurer, string connectionString)
     {
         configurer.StoreInSqlServer(connectionString,
