@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Rebus.SqlServer" Version="7.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="D:\Source\Repos\dbosoft\rebus-extensions\src\Rebus.Configuration\Rebus.Configuration.Selectors\Rebus.Configuration.Selectors.csproj" />
+  </ItemGroup>
+
+</Project>

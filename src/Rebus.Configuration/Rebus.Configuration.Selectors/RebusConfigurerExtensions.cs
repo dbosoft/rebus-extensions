@@ -1,5 +1,6 @@
 ﻿using Rebus.Config;
 using Rebus.DataBus;
+using Rebus.Sagas;
 using Rebus.Subscriptions;
 using Rebus.Timeouts;
 
@@ -14,7 +15,6 @@ namespace Dbosoft.Rebus.Configuration
             rebusConfigurer.DataBus(configurer.Configure);
             return rebusConfigurer;
         }
-
 
         public static RebusConfigurer Timeouts(this RebusConfigurer rebusConfigurer,
             IGenericRebusConfigurer<ITimeoutManager> configurer)
@@ -41,6 +41,13 @@ namespace Dbosoft.Rebus.Configuration
             IRebusTransportConfigurer configurer, string queueName)
         {
             rebusConfigurer.Transport(cfg => configurer.Configure(cfg, queueName));
+            return rebusConfigurer;
+        }
+
+        public static RebusConfigurer Sagas(this RebusConfigurer rebusConfigurer,
+            IGenericRebusConfigurer<ISagaStorage> configurer)
+        {
+            rebusConfigurer.Sagas(configurer.Configure);
             return rebusConfigurer;
         }
     }

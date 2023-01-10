@@ -9,9 +9,11 @@
     <PackageTags>Rebus</PackageTags>
     <Authors>dbosoft</Authors>
     <Company>dbosoft GmbH</Company>
-    <Product>dbosoft Open VSwitch</Product>
+    <Product>dbosoft Rebus Extensions</Product>
+    <Title>Rebus Configuration Extensions</Title>
     <RepositoryUrl>https://github.com/dbosoft/rebus-extensions</RepositoryUrl>
     <AssemblyName>Dbosoft.$(MSBuildProjectName)</AssemblyName>
+    <Description>A extension to Rebus to configure transports and other settings via dependency injection.</Description>
     <RootNamespace>Dbosoft.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
 
     <!-- Declare that the Repository URL can be published to NuSpec -->
