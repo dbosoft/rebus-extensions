@@ -1,6 +1,7 @@
 
 <Project>
   <PropertyGroup>
+    <NoWarn>1591</NoWarn>
     <PackageOutputPath>..\..\build-packages</PackageOutputPath>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/dbosoft/rebus-extensions</PackageProjectUrl>
