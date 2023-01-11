@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using System.Diagnostics.CodeAnalysis;
+using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Rebus.Config;
@@ -7,6 +8,7 @@ using Rebus.Transport;
 namespace Dbosoft.Rebus.Configuration;
 
 [PublicAPI]
+[ExcludeFromCodeCoverage]
 public class MsmqTransportSelector : RebusTransportSelectorBase
 {
 
