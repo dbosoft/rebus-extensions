@@ -2,8 +2,8 @@
 
 public class SqlServerSagaStoreOptions
 {
-    public string DataTableName { get; set; }
-    public string IndexTableName { get; set; }
+    public string? DataTableName { get; set; }
+    public string? IndexTableName { get; set; }
 
-    public bool AutomaticallyCreateTables { get; set; }
+    public bool? AutomaticallyCreateTables { get; set; }
 }

@@ -2,7 +2,7 @@
 
 public class SqlServerDataBusOptions
 {
-    public string TableName { get; set; }
+    public string? TableName { get; set; }
 
-    public bool AutomaticallyCreateTables { get; set; }
+    public bool? AutomaticallyCreateTables { get; set; }
 }

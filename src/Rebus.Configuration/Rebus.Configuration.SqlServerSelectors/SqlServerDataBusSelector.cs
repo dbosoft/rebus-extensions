@@ -20,6 +20,6 @@ public class SqlServerDataBusSelector : SqlServerSelectorBase<IDataBusStorage>
     protected override void ConfigureSqlServer(StandardConfigurer<IDataBusStorage> configurer, string connectionString)
     {
         configurer.StoreInSqlServer(connectionString,
-            _options.Value.TableName, _options.Value.AutomaticallyCreateTables);
+            _options.Value.TableName ?? "DataBusData", _options.Value.AutomaticallyCreateTables ?? false);
     }
 }

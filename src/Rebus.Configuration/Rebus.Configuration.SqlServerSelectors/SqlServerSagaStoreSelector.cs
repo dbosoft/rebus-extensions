@@ -20,6 +20,8 @@ public class SqlServerSagaStoreSelector : SqlServerSelectorBase<ISagaStorage>
     protected override void ConfigureSqlServer(StandardConfigurer<ISagaStorage> configurer, string connectionString)
     {
         configurer.StoreInSqlServer(connectionString,
-            _options.Value.DataTableName, _options.Value.IndexTableName, _options.Value.AutomaticallyCreateTables);
+            _options.Value.DataTableName ?? "SagaData", 
+            _options.Value.IndexTableName ?? "SagaIndex", 
+            _options.Value.AutomaticallyCreateTables ?? false);
     }
 }

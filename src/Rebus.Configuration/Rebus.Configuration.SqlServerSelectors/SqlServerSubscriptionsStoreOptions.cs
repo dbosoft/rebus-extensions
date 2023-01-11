@@ -2,9 +2,9 @@
 
 public class SqlServerSubscriptionsStoreOptions
 {
-    public string TableName { get; set; }
+    public string? TableName { get; set; }
 
-    public bool IsCentralized { get; set; }
+    public bool? IsCentralized { get; set; }
 
-    public bool AutomaticallyCreateTables { get; set; }
+    public bool? AutomaticallyCreateTables { get; set; }
 }

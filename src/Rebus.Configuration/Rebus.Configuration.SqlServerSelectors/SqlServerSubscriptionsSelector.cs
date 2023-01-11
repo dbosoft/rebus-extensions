@@ -18,8 +18,8 @@ public class SqlServerSubscriptionsSelector : SqlServerSelectorBase<ISubscriptio
     public override string ConfigurationName => "store";
     protected override void ConfigureSqlServer(StandardConfigurer<ISubscriptionStorage> configurer, string connectionString)
     {
-        configurer.StoreInSqlServer(connectionString, _options.Value.TableName, 
-            isCentralized: _options.Value.IsCentralized,
-            automaticallyCreateTables: _options.Value.AutomaticallyCreateTables);
+        configurer.StoreInSqlServer(connectionString, _options.Value.TableName ?? "Subscriptions", 
+            isCentralized: _options.Value.IsCentralized ?? false,
+            automaticallyCreateTables: _options.Value.AutomaticallyCreateTables ?? false);
     }
 }

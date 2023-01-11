@@ -18,6 +18,8 @@ public class SqlServerTimeoutsSelector: SqlServerSelectorBase<ITimeoutManager>
     public override string ConfigurationName => "store";
     protected override void ConfigureSqlServer(StandardConfigurer<ITimeoutManager> configurer, string connectionString)
     {
-        configurer.StoreInSqlServer(connectionString, _options.Value.TableName,_options.Value.AutomaticallyCreateTables );
+        configurer.StoreInSqlServer(connectionString, 
+            _options.Value.TableName ?? "Timeouts",
+            _options.Value.AutomaticallyCreateTables ?? false );
     }
 }
