@@ -4,8 +4,13 @@ namespace Dbosoft.Rebus.Operations.Tests;
 
 public class TestTaskManager : OperationTaskManagerBase
 {
-    public readonly Dictionary<Guid, TestOperationTaskModel> Tasks = new();
+    public static readonly Dictionary<Guid, TestOperationTaskModel> Tasks = new();
 
+    public static void Reset()
+    {
+        Tasks.Clear();
+    }
+    
     public override ValueTask<IOperationTask?> GetByIdAsync(Guid taskId)
     {
         return ValueTask.FromResult( 

@@ -4,8 +4,15 @@ namespace Dbosoft.Rebus.Operations.Tests;
 
 public class TestOperationManager : OperationManagerBase
 {
-    public readonly Dictionary<Guid, TestOperationModel> Operations = new();
+    public static readonly Dictionary<Guid, TestOperationModel> Operations = new();
+    public static readonly Dictionary<Guid, List<object>> Progress = new();
 
+    public static void Reset()
+    {
+        Operations.Clear();
+        Progress.Clear();
+    }
+    
     public override ValueTask<IOperation?> GetByIdAsync(Guid operationId)
     {
         return ValueTask.FromResult( 
@@ -41,6 +48,11 @@ public class TestOperationManager : OperationManagerBase
     public override ValueTask AddProgressAsync(Guid progressId, DateTimeOffset timestamp, IOperation operation, IOperationTask task,
         object? data)
     {
+        if(!Progress.ContainsKey(progressId))
+            Progress.Add(operation.Id, new List<object>());
+     
+        if(data!= null)
+            Progress[operation.Id].Add(data);
         return ValueTask.CompletedTask;
     }
 }
