@@ -35,10 +35,11 @@ steps:
     publishTestResults: true
 
 # ReportGenerator extension to combine code coverage outputs into one
-- task: reportgenerator@4
+- task: reportgenerator@5
   inputs:
     reports: '$(Agent.WorkFolder)/**/coverage.cobertura.xml'
     targetdir: '$(Build.SourcesDirectory)/CoverageResults'
+
 
 # Publish the combined code coverage to the pipeline
 - task: PublishCodeCoverageResults@1
