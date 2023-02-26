@@ -31,8 +31,23 @@ steps:
   inputs:
     command: test
     projects: '**/*Tests/*.csproj'
-    arguments: '--configuration $(buildConfiguration) --collect "Code coverage"  --no-build'
-  
+    arguments: '--configuration $(buildConfiguration) --collect "XPlat Code Coverage"  --no-build'
+    publishTestResults: true
+
+- task: reportgenerator@5
+  displayName: 'Merge code coverage results'
+  inputs:
+    reports: '$(Agent.WorkFolder)/**/coverage.cobertura.xml'
+    targetdir: '$(Build.SourcesDirectory)/CoverageResults'
+    reporttypes: 'Cobertura'
+
+# Publish the combined code coverage to the pipeline
+- task: PublishCodeCoverageResults@1
+  displayName: 'Publish code coverage report'
+  inputs:
+    codeCoverageTool: 'Cobertura'
+    summaryFileLocation: '$(Build.SourcesDirectory)/CoverageResults/Cobertura.xml'
+
 - task: DotNetCoreCLI@2
   displayName: dotnet pack
   inputs:

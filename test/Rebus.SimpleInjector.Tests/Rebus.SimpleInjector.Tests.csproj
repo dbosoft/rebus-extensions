@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\Rebus.Operations\Rebus.Operations.SimpleInjector\Rebus.Operations.SimpleInjector.csproj" />
+      <ProjectReference Include="..\..\src\Rebus.SimpleInjector\Rebus.SimpleInjector.csproj" />
+      <ProjectReference Include="..\Rebus.Operations.Tests\Rebus.Operations.Tests.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
+      <PackageReference Include="SimpleInjector.Integration.ServiceCollection" Version="5.4.0" />
+    </ItemGroup>
+
+</Project>
