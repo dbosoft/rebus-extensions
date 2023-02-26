@@ -47,7 +47,6 @@ steps:
   inputs:
     codeCoverageTool: 'Cobertura'
     summaryFileLocation: '$(Build.SourcesDirectory)/CoverageResults/Cobertura.xml'
-    reportDirectory: '$(Build.SourcesDirectory)/CoverageResults'
 
 - task: DotNetCoreCLI@2
   displayName: dotnet pack
