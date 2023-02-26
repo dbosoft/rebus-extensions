@@ -34,12 +34,12 @@ steps:
     arguments: '--configuration $(buildConfiguration) --collect "XPlat Code Coverage"  --no-build'
     publishTestResults: true
 
-# ReportGenerator extension to combine code coverage outputs into one
 - task: reportgenerator@5
+  displayName: 'Merge code coverage results'
   inputs:
     reports: '$(Agent.WorkFolder)/**/coverage.cobertura.xml'
     targetdir: '$(Build.SourcesDirectory)/CoverageResults'
-
+    reporttypes: 'Cobertura'
 
 # Publish the combined code coverage to the pipeline
 - task: PublishCodeCoverageResults@1
