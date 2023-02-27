@@ -87,7 +87,7 @@ namespace Dbosoft.Rebus.Operations.Workflow
                 throw new InvalidOperationException($"unknown command type '{message.CommandType}'");
 
             Data.Tasks.Add(message.TaskId, messageType.AssemblyQualifiedName!);
-            _workflow.Messaging.DispatchTaskMessage(command,task);
+            await _workflow.Messaging.DispatchTaskMessage(command,task);
         }
 
 
