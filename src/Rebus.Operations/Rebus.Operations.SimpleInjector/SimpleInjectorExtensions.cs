@@ -41,7 +41,7 @@ public static class SimpleInjectorExtensions
         container.RegisterConditional<IOperationDispatcher, DefaultOperationDispatcher>(Lifestyle.Scoped,c=> !c.Handled);
         container.RegisterConditional<IWorkflow, DefaultWorkflow>(Lifestyle.Scoped,c=> !c.Handled);
 
-        container.Register<IOperationMessaging, RebusOperationMessaging>(Lifestyle.Scoped);
+        container.RegisterConditional<IOperationMessaging, RebusOperationMessaging>(Lifestyle.Scoped, c=> !c.Handled);
         container.RegisterConditional<IMessageEnricher, DefaultMessageEnricher>(Lifestyle.Scoped, c=> !c.Handled);
 
         container.Collection.Append(typeof(IHandleMessages<>), typeof(ProcessOperationSaga), Lifestyle.Scoped);
