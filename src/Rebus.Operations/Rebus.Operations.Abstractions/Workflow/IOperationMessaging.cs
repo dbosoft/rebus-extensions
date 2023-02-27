@@ -5,7 +5,7 @@ namespace Dbosoft.Rebus.Operations.Workflow;
 
 public interface IOperationMessaging
 {
-    void DispatchTaskMessage(object command, IOperationTask task);
+    Task DispatchTaskMessage(object command, IOperationTask task);
     Task DispatchTaskStatusEventAsync(string commandType, OperationTaskStatusEvent message);
     Task DispatchTaskStatusEventAsync(OperationTaskStatusEvent message);
     Task DispatchOperationStatusEventAsync(OperationStatusEvent operationStatusEvent);

@@ -18,14 +18,14 @@ public class RebusOperationMessaging : IOperationMessaging
         TaskDispatcher = taskDispatcher;
     }
 
-    public virtual void DispatchTaskMessage(object command, IOperationTask task)
+    public virtual Task DispatchTaskMessage(object command, IOperationTask task)
     {
         var messageType = command.GetType();
         var outboundMessage = Activator.CreateInstance(
             typeof(OperationTaskSystemMessage<>).MakeGenericType(messageType),
             command, task.OperationId, task.InitiatingTaskId, task.Id);
 
-        _bus.SendLocal(outboundMessage);
+        return _bus.SendLocal(outboundMessage);
     }
 
     public Task DispatchTaskStatusEventAsync(string commandType, OperationTaskStatusEvent message)

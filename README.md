@@ -1,6 +1,6 @@
 # dbosoft Rebus Extensions 
 
-This repository will contain following extensions to [Rebus](https://github.com/rebus-org/rebus):
+This repository contains following extensions to [Rebus](https://github.com/rebus-org/rebus):
 
 - Dbosoft.Rebus.Configuration  
   A extension for configuring rebus via dependency injection.
@@ -9,4 +9,3 @@ This repository will contain following extensions to [Rebus](https://github.com/
   A extension that uses rebus sagas to manage long running operations.
   
 
-Development is in progress and no public release is currently available.
