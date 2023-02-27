@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -36,7 +37,7 @@ public class DefaultSagaStoreSelector : GenericRebusSelectorBase<ISagaStorage>
                 if(path == null)
                     throw new InvalidOperationException($"Missing configuration entry for {ConfigurationName}::path.");
 
-                configurer.UseFilesystem(path);
+                configurer.UseFilesystem(Path.Combine(path, "sagas"));
                 return;
         }
     }

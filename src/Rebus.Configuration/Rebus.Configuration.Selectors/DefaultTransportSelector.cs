@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -31,7 +32,7 @@ public class DefaultTransportSelector : RebusTransportSelectorBase
                 if (path == null)
                     throw new InvalidOperationException($"Missing configuration entry for {ConfigurationName}::path.");
 
-                configurer.UseFileSystem(path, queueName);
+                configurer.UseFileSystem(Path.Combine(path, "transport"), queueName);
                 return;
             case "inmemory":
                 configurer.UseInMemoryTransport(_network, queueName);

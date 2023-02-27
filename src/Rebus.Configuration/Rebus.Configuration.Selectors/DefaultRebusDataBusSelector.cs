@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -35,7 +36,7 @@ public class DefaultRebusDataBusSelector : GenericRebusSelectorBase<IDataBusStor
 
                 if (path == null)
                     throw new InvalidOperationException($"Missing configuration entry for {ConfigurationName}::path.");
-                configurer.StoreInFileSystem(path);
+                configurer.StoreInFileSystem(Path.Combine(path, "databus"));
                 return;
 
             case "inmemory":

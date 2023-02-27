@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Rebus.Config;
@@ -31,7 +32,7 @@ public class DefaultTimeoutsStoreSelector: GenericRebusSelectorBase<ITimeoutMana
                 if(path == null)
                     throw new InvalidOperationException($"Missing configuration entry for {ConfigurationName}::path.");
 
-                configurer.UseFileSystem(path);
+                configurer.UseFileSystem(Path.Combine(path, "timeouts"));
                 break;
         }
     }
