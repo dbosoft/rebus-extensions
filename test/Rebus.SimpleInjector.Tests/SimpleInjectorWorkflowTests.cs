@@ -1,5 +1,6 @@
 using Dbosoft.Rebus.Operations;
 using Dbosoft.Rebus.Operations.Tests;
+using Dbosoft.Rebus.Operations.Workflow;
 using Microsoft.Extensions.DependencyInjection;
 using Rebus.Bus;
 using Rebus.Handlers;
@@ -19,8 +20,12 @@ public class SimpleInjectorWorkflowTests : SimpleInjectorTestBase
     }
 
 
-    [Fact]
-    public async Task MultiStep_Operation_is_processed()
+    [Theory]
+    [InlineData(false, "")]
+    [InlineData(true, "")]
+    [InlineData(false, "main")]
+    [InlineData(true, "main")]
+    public async Task MultiStep_Operation_is_processed(bool sendMode, string eventDestination)
     {
         var sc = new ServiceCollection();
         sc.AddLogging();
@@ -29,11 +34,11 @@ public class SimpleInjectorWorkflowTests : SimpleInjectorTestBase
         container.Options.DefaultScopedLifestyle = new AsyncScopedLifestyle();
         sc.AddSimpleInjector(container, cfg => cfg.AddLogging());
 
-        SetupRebus(container);
+        SetupRebus(container, sendMode, eventDestination);
         container.Collection.Append(typeof(IHandleMessages<>), typeof(MultiStepSaga));
         container.Collection.Append(typeof(IHandleMessages<>), typeof(StepOneCommandHandler), Lifestyle.Scoped);
         container.Collection.Append(typeof(IHandleMessages<>), typeof(StepTwoCommandHandler), Lifestyle.Scoped);
-
+        
         container.Register<TestOperationManager>(Lifestyle.Scoped);
         container.Register<TestTaskManager>(Lifestyle.Scoped);
         container.Register<StepOneCommandHandler>(Lifestyle.Scoped);
@@ -51,7 +56,8 @@ public class SimpleInjectorWorkflowTests : SimpleInjectorTestBase
 
         await using var scope = AsyncScopedLifestyle.BeginScope(container);
         var bus = scope.GetInstance<IBus>();
-        await OperationsSetup.SubscribeEvents(bus);
+        await OperationsSetup.SubscribeEvents(bus,
+            container.GetInstance<WorkflowOptions>());
         
         var dispatcher = scope.GetInstance<IOperationDispatcher>();
 

@@ -11,17 +11,6 @@ namespace Dbosoft.Rebus.Operations;
 
 public static class SimpleInjectorExtensions
 {
-    public static RebusConfigurer AddOperations(this RebusConfigurer configurer, string queueName)
-    {
-        return configurer.Routing(x => x.TypeBased()
-            .Map<CreateOperationCommand>(queueName)
-            .Map<CreateNewOperationTaskCommand>(queueName)
-            .Map<OperationStatusEvent>(queueName)
-            .Map<OperationTaskProgressEvent>(queueName)
-            .Map<OperationTaskStatusEvent>(queueName)
-            .Map<OperationTaskAcceptedEvent>(queueName)
-            .Map<OperationTimeoutEvent>(queueName));
-    }
     
     public static Container AddRebusOperationsHandlers<TOpManager, TTaskManager>(this Container container)
         where TOpManager : IOperationManager

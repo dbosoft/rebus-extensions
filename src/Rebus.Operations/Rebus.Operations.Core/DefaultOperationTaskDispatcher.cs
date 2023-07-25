@@ -14,8 +14,9 @@ public class DefaultOperationTaskDispatcher : OperationTaskDispatcherBase
 
     public DefaultOperationTaskDispatcher(
         IBus bus, 
+        WorkflowOptions workflowOptions,
         ILogger<DefaultOperationTaskDispatcher> logger,
-        IOperationManager operationManager, IOperationTaskManager operationTaskManager) : base(bus, logger)
+        IOperationManager operationManager, IOperationTaskManager operationTaskManager) : base(bus, workflowOptions, logger)
     {
         _operationManager = operationManager;
         _operationTaskManager = operationTaskManager;

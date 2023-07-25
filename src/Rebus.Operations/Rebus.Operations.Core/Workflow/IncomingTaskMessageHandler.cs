@@ -4,6 +4,7 @@ using Dbosoft.Rebus.Operations.Events;
 using Microsoft.Extensions.Logging;
 using Rebus.Bus;
 using Rebus.Handlers;
+using Rebus.Pipeline;
 
 namespace Dbosoft.Rebus.Operations.Workflow
 {
@@ -21,6 +22,7 @@ namespace Dbosoft.Rebus.Operations.Workflow
 
         public async Task Handle(OperationTaskSystemMessage<T> taskMessage)
         {
+            
             await _bus.SendLocal(new OperationTask<T>(taskMessage.Message,  taskMessage.OperationId, taskMessage.InitiatingTaskId, taskMessage.TaskId)).ConfigureAwait(false);
 
             _logger.LogTrace($"Accepted incoming operation message. Operation id: '{taskMessage.OperationId}'");

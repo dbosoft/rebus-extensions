@@ -6,17 +6,17 @@ namespace Dbosoft.Rebus.Operations.Tests;
 
 public class TestCommandHandler : IHandleMessages<OperationTask<TestCommand>>
 {
-    private readonly IBus _bus;
+    private readonly IOperationMessaging _operationMessaging;
     public bool Called { get; private set; }
 
-    public TestCommandHandler(IBus bus)
+    public TestCommandHandler(IOperationMessaging operationMessaging)
     {
-        _bus = bus;
+        _operationMessaging = operationMessaging;
     }
     
     public Task Handle(OperationTask<TestCommand> message)
     {
         Called = true;
-        return _bus.CompleteTask(message);
+        return _operationMessaging.CompleteTask(message);
     }
 }
