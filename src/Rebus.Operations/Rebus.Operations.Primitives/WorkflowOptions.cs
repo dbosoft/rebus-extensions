@@ -1,4 +1,4 @@
-namespace Dbosoft.Rebus.Operations.Workflow;
+namespace Dbosoft.Rebus.Operations;
 
 public class WorkflowOptions
 {
