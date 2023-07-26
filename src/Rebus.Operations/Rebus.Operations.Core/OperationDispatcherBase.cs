@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Dbosoft.Rebus.Operations.Commands;
-using Dbosoft.Rebus.Operations.Workflow;
 using Microsoft.Extensions.Logging;
 using Rebus.Bus;
 
@@ -27,9 +26,9 @@ namespace Dbosoft.Rebus.Operations
             _logger = logger;
         }
 
-        public ValueTask<IOperation?> StartNew(object command, IDictionary<string,string>? additionalHeaders = null)
+        public ValueTask<IOperation?> StartNew(object command, object? additionalData = default, IDictionary<string,string>? additionalHeaders = null)
         {
-            return StartOperation(command, null, additionalHeaders);
+            return StartOperation(command, additionalData, additionalHeaders);
         }
 
         public ValueTask<IOperation?> StartNew<T>(object? additionalData = default, IDictionary<string,string>? additionalHeaders = null)
@@ -44,14 +43,14 @@ namespace Dbosoft.Rebus.Operations
             return StartOperation(commandType,additionalData, additionalHeaders);
         }
 
-        protected abstract ValueTask<(IOperation, object)> CreateOperation(object command, object? additionalData);
+        protected abstract ValueTask<(IOperation, object)> CreateOperation(object command, object? additionalData, IDictionary<string,string>? additionalHeaders);
 
         protected async ValueTask<IOperation?> StartOperation(object command, object? additionalData, IDictionary<string,string>? additionalHeaders = null)
         {
             if (command == null)
                 throw new ArgumentNullException(nameof(command));
 
-            var(operation, taskCommand) = await CreateOperation(command, additionalData);
+            var(operation, taskCommand) = await CreateOperation(command, additionalData, additionalHeaders);
             
             var commandJson = JsonSerializer.Serialize(taskCommand);
 

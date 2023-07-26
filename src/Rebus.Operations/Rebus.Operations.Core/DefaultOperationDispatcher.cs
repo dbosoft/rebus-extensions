@@ -22,7 +22,7 @@ public class DefaultOperationDispatcher : OperationDispatcherBase
         _operationManager = operationManager;
     }
 
-    protected override async ValueTask<(IOperation, object)> CreateOperation(object command, object? additionalData)
+    protected override async ValueTask<(IOperation, object)> CreateOperation(object command, object? additionalData,IDictionary<string,string>? additionalHeaders)
     {
         return (await _operationManager.GetOrCreateAsync(Guid.NewGuid(), command), command);
     }

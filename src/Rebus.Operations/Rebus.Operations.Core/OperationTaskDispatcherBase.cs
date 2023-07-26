@@ -43,7 +43,7 @@ public abstract class OperationTaskDispatcherBase : IOperationTaskDispatcher
         return StartTask(operationId, initiatingTaskId, commandType, additionalData, additionalHeaders);
     }
 
-    protected abstract ValueTask<(IOperationTask, object)> CreateTask(Guid operationId, Guid initiatingTaskId, object command, object? additionalData);
+    protected abstract ValueTask<(IOperationTask, object)> CreateTask(Guid operationId, Guid initiatingTaskId, object command, object? additionalData, IDictionary<string,string>? additionalHeaders);
 
     protected async ValueTask<IOperationTask?> StartTask(Guid operationId, Guid initiatingTaskId, 
         object command, object? additionalData, IDictionary<string,string>? additionalHeaders = null)
@@ -51,7 +51,7 @@ public abstract class OperationTaskDispatcherBase : IOperationTaskDispatcher
         if (command == null)
             throw new ArgumentNullException(nameof(command));
 
-        var (task, taskCommand) = await CreateTask(operationId, initiatingTaskId, command, additionalData);
+        var (task, taskCommand) = await CreateTask(operationId, initiatingTaskId, command, additionalData, additionalHeaders);
         var commandJson = JsonSerializer.Serialize(taskCommand);
 
         var taskMessage = new CreateNewOperationTaskCommand(

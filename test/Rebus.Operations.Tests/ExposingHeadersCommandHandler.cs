@@ -13,7 +13,7 @@ public class ExposingHeadersCommandHandler : IHandleMessages<OperationTask<TestC
     }
 
     public static bool Called { get; set; }
-    public static IDictionary<string, string> Headers;
+    public static IDictionary<string, string>? Headers;
 
     public Task Handle(OperationTask<TestCommand> message)
     {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dbosoft.Rebus.Operations.Workflow;
 using Microsoft.Extensions.Logging;
@@ -22,7 +23,8 @@ public class DefaultOperationTaskDispatcher : OperationTaskDispatcherBase
         _operationTaskManager = operationTaskManager;
     }
 
-    protected override async ValueTask<(IOperationTask, object)> CreateTask(Guid operationId, Guid initiatingTaskId, object command, object? additionalData)
+    protected override async ValueTask<(IOperationTask, object)> CreateTask(Guid operationId, Guid initiatingTaskId, 
+        object command, object? additionalData, IDictionary<string,string>? additionalHeaders)
     {
         var op = await _operationManager.GetByIdAsync(operationId);
         if (op == null)
