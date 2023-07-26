@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -17,5 +18,8 @@ public interface ITaskMessaging
         IDictionary<string, string>? additionalHeaders = null);
 
     Task ProgressMessage(IOperationTaskMessage message, object data,
+        IDictionary<string, string>? additionalHeaders = null);
+
+    Task ProgressMessage(Guid operationId, Guid taskId, object data,
         IDictionary<string, string>? additionalHeaders = null);
 }

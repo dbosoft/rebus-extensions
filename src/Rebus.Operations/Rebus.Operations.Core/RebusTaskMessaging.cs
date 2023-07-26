@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dbosoft.Rebus.Operations.Events;
-using Dbosoft.Rebus.Operations.Workflow;
 using Rebus.Bus;
 using Rebus.Transport;
 
@@ -49,15 +48,19 @@ public class RebusTaskMessaging : ITaskMessaging
     }
 
 
-    public async Task ProgressMessage(IOperationTaskMessage message, object data, IDictionary<string,string>? additionalHeaders = null)
+    public Task ProgressMessage(IOperationTaskMessage message, object data, IDictionary<string,string>? additionalHeaders = null)
+    {
+        return ProgressMessage(message.OperationId, message.TaskId, data, additionalHeaders);
+    }
+
+    public async Task ProgressMessage(Guid operationId, Guid taskId, object data, IDictionary<string,string>? additionalHeaders = null)
     {
         using var scope = new RebusTransactionScope();
-        
         await _bus.SendWorkflowEvent(_options, new OperationTaskProgressEvent
         {
             Id = Guid.NewGuid(),
-            OperationId = message.OperationId,
-            TaskId = message.TaskId,
+            OperationId = operationId,
+            TaskId = taskId,
             Data = data,
             Timestamp = DateTimeOffset.UtcNow
         }, additionalHeaders).ConfigureAwait(false);
