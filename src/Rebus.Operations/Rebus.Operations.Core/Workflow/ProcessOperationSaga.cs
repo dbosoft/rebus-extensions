@@ -122,7 +122,7 @@ namespace Dbosoft.Rebus.Operations.Workflow
                 _log.LogDebug("Operation Workflow {operationId}: Status changed: {oldStatus} -> {newStatus}",
                     message.OperationId, opOldStatus, op.Status);
 
-
+                
                 await _workflow.Messaging.DispatchOperationStatusEventAsync(new OperationStatusEvent
                 {
                     OperationId = op.Id,

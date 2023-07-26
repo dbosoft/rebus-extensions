@@ -1,5 +1,3 @@
-using Dbosoft.Rebus.Operations.Commands;
-using Dbosoft.Rebus.Operations.Events;
 using Dbosoft.Rebus.Operations.Workflow;
 using Microsoft.Extensions.Logging.Abstractions;
 using Rebus.Activation;
@@ -24,7 +22,8 @@ public abstract class RebusTestBase
 
     public async Task<TestRebusSetup> SetupRebus(
         bool sendMode, string eventDestination,
-        Action<BuiltinHandlerActivator, IWorkflow, ITaskMessaging, IBus> configureActivator)
+        Action<BuiltinHandlerActivator, IWorkflow, ITaskMessaging, IBus> configureActivator,
+        IMessageEnricher? messageEnricher = default)
     {
         var rebusNetwork = new InMemNetwork();
 
@@ -65,10 +64,11 @@ public abstract class RebusTestBase
             workflowOptions,
             NullLogger<DefaultOperationTaskDispatcher>.Instance,
             opManager, taskManager);
-        
+
+        messageEnricher ??= new DefaultMessageEnricher();
         var workflow = new DefaultWorkflow(
             opManager, taskManager, new RebusOperationMessaging(busStarter.Bus,
-                opDispatcher, taskDispatcher,workflowOptions ));
+                opDispatcher, taskDispatcher,messageEnricher, workflowOptions ));
 
         var taskMessaging = new RebusTaskMessaging(busStarter.Bus, workflowOptions);
         
