@@ -31,19 +31,23 @@ namespace Dbosoft.Rebus.Operations.Workflow
 
         public Task Handle(CreateOperationCommand message)
         {
+            if(message.TaskMessage == null)
+                throw new InvalidOperationException($"Operation Workflow: invalid command - missing task message");
+            
             Data.OperationId = message.TaskMessage.OperationId;
             Data.PrimaryTaskId = message.TaskMessage.TaskId;
+            
             return Handle(message.TaskMessage);
         }
 
-        public Task Handle(OperationTimeoutEvent message)
+        public Task Handle(OperationTimeoutEvent? message)
         {
             return Task.CompletedTask;
         }
 
         protected override void CorrelateMessages(ICorrelationConfig<OperationSagaData> config)
         {
-            config.Correlate<CreateOperationCommand>(m => m.TaskMessage.OperationId, d => d.OperationId);
+            config.Correlate<CreateOperationCommand>(m => m.TaskMessage?.OperationId, d => d.OperationId);
             config.Correlate<CreateNewOperationTaskCommand>(m => m.OperationId, d => d.OperationId);
             config.Correlate<OperationTimeoutEvent>(m => m.OperationId, d => d.OperationId);
             config.Correlate<OperationTaskAcceptedEvent>(m => m.OperationId, d => d.OperationId);
@@ -52,6 +56,10 @@ namespace Dbosoft.Rebus.Operations.Workflow
 
         public async Task Handle(CreateNewOperationTaskCommand message)
         {
+            if(string.IsNullOrWhiteSpace(message.CommandData))
+                throw new InvalidOperationException($"Operation Workflow {message.OperationId}: missing command data");
+            if(string.IsNullOrWhiteSpace(message.CommandType))
+                throw new InvalidOperationException($"Operation Workflow {message.OperationId}: missing command type");
 
             var command = JsonSerializer.Deserialize(message.CommandData,
                 Type.GetType(message.CommandType) ??
