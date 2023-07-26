@@ -1,3 +1,4 @@
+using Dbosoft.Rebus.Operations.Workflow;
 using Rebus.Bus;
 using Rebus.Handlers;
 
@@ -5,13 +6,13 @@ namespace Dbosoft.Rebus.Operations.Tests;
 
 public class TestCommandHandlerWithError : IHandleMessages<OperationTask<TestCommand>>
 {
-    private readonly IBus _bus;
+    private readonly ITaskMessaging _messaging;
     private readonly bool _throws;
 
-    public TestCommandHandlerWithError(IBus bus, bool throws)
+    public TestCommandHandlerWithError(bool throws, ITaskMessaging messaging)
     {
-        _bus = bus;
         _throws = throws;
+        _messaging = messaging;
     }
     
     public async Task Handle(OperationTask<TestCommand> message)
@@ -19,6 +20,6 @@ public class TestCommandHandlerWithError : IHandleMessages<OperationTask<TestCom
         if (_throws)
             throw new InvalidOperationException();
         
-        await _bus.FailTask(message, "error");
+        await _messaging.FailTask(message, "error");
     }
 }

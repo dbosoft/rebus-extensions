@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Dbosoft.Rebus.Operations.Commands;
+using Dbosoft.Rebus.Operations.Events;
 using Dbosoft.Rebus.Operations.Workflow;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -14,16 +16,20 @@ public class WorkflowTests : RebusTestBase
     {
     }
     
-    [Fact]
-    public async Task SingleStep_Operation_is_processed()
+    [Theory]
+    [InlineData(false, "")]
+    [InlineData(true, "")]
+    [InlineData(false, "main")]
+    [InlineData(true, "main")]
+    public async Task SingleStep_Operation_is_processed(bool sendMode, string eventDestination)
     {
         TestCommandHandler? taskHandler = null;
 
-        using var setup = await SetupRebus(configureActivator: (activator, _, bus) =>
+        using var setup = await SetupRebus(sendMode, eventDestination, configureActivator: (activator,_,tasks, bus) =>
         {
             activator.Register(() => new IncomingTaskMessageHandler<TestCommand>(bus,
                 NullLogger<IncomingTaskMessageHandler<TestCommand>>.Instance, new DefaultMessageEnricher()));
-            taskHandler = new TestCommandHandler(bus);
+            taskHandler = new TestCommandHandler(tasks);
             activator.Register(() => taskHandler);
             activator.Register(() => new EmptyOperationStatusEventHandler());
             activator.Register(() => new EmptyOperationTaskStatusEventHandler<TestCommand>());
@@ -40,12 +46,16 @@ public class WorkflowTests : RebusTestBase
 
     }
 
-    [Fact]
-    public async Task MultiStep_Operation_is_processed()
+    [Theory]
+    [InlineData(false, "")]
+    [InlineData(true, "")]
+    [InlineData(false, "main")]
+    [InlineData(true, "main")]
+    public async Task MultiStep_Operation_is_processed(bool sendMode, string eventDestination)
     {
         StepOneCommandHandler? stepOneHandler;
         StepTwoCommandHandler? stepTwoHandler;
-        using var setup = await SetupRebus(configureActivator: (activator, wf, bus) =>
+        using var setup = await SetupRebus(sendMode, eventDestination, configureActivator: (activator, wf, tasks, bus) =>
         {
             activator.Register(() => new IncomingTaskMessageHandler<MultiStepCommand>(bus,
                 NullLogger<IncomingTaskMessageHandler<MultiStepCommand>>.Instance, new DefaultMessageEnricher()));
@@ -57,8 +67,8 @@ public class WorkflowTests : RebusTestBase
             activator.Register(() => new EmptyOperationStatusEventHandler());
             activator.Register(() => new MultiStepSaga(wf));
 
-            stepOneHandler = new StepOneCommandHandler(bus);
-            stepTwoHandler = new StepTwoCommandHandler(bus);
+            stepOneHandler = new StepOneCommandHandler(tasks);
+            stepTwoHandler = new StepTwoCommandHandler(tasks);
             activator.Register(() => stepOneHandler);
             activator.Register(() => stepTwoHandler);
         });
@@ -82,10 +92,14 @@ public class WorkflowTests : RebusTestBase
         }
     }
 
-    [Fact]
-    public async Task Progress_is_reported()
+    [Theory]
+    [InlineData(false, "")]
+    [InlineData(true, "")]
+    [InlineData(false, "main")]
+    [InlineData(true, "main")]
+    public async Task Progress_is_reported(bool sendMode, string eventDestination)
     {
-        using var setup = await SetupRebus(configureActivator: (activator, wf, bus) =>
+        using var setup = await SetupRebus(sendMode, eventDestination, configureActivator: (activator, wf,tasks, bus) =>
         {
             activator.Register(() => new IncomingTaskMessageHandler<TestCommand>(bus,
                 NullLogger<IncomingTaskMessageHandler<TestCommand>>.Instance, new DefaultMessageEnricher()));
@@ -94,7 +108,7 @@ public class WorkflowTests : RebusTestBase
                 NullLogger<OperationTaskProgressEventHandler>.Instance));
 
             activator.Register(() => new EmptyOperationTaskStatusEventHandler<TestCommand>());
-            activator.Register(() => new TestCommandHandlerWithProgress(bus));
+            activator.Register(() => new TestCommandHandlerWithProgress(tasks));
         });
         
         TestOperationManager.Reset();
@@ -114,11 +128,11 @@ public class WorkflowTests : RebusTestBase
     public async Task SingleStep_Operation_failure_is_reported(bool throws)
     {
   
-        using var setup = await SetupRebus(configureActivator: (activator, wf, bus) =>
+        using var setup = await SetupRebus(false, "", configureActivator: (activator, wf,tasks, bus) =>
         {
             activator.Register(() => new IncomingTaskMessageHandler<TestCommand>(bus,
                 NullLogger<IncomingTaskMessageHandler<TestCommand>>.Instance, new DefaultMessageEnricher()));
-            activator.Register(() => new TestCommandHandlerWithError(bus, throws));
+            activator.Register(() => new TestCommandHandlerWithError(throws, tasks));
             activator.Register(() => new EmptyOperationStatusEventHandler());
             activator.Register(() => new EmptyOperationTaskStatusEventHandler<TestCommand>());
             activator.Register(() =>
@@ -133,5 +147,71 @@ public class WorkflowTests : RebusTestBase
         await Task.Delay(throws ? 2000: 1000);
         Assert.Equal(OperationStatus.Failed ,TestOperationManager.Operations.First().Value.Status);
 
+    }
+
+    [Fact]
+    public async Task Headers_are_passed_to_task()
+    {
+        var messageEnricher = new TestMessageEnricher();
+        using var setup = await SetupRebus(false, "", configureActivator: (activator, wf,tasks, bus) =>
+        {
+            activator.Register(() => new IncomingTaskMessageHandler<TestCommand>(bus,
+                NullLogger<IncomingTaskMessageHandler<TestCommand>>.Instance, messageEnricher));
+            activator.Register(() => new ExposingHeadersCommandHandler(tasks));
+            activator.Register(() => new EmptyOperationStatusEventHandler());
+            activator.Register(() => new EmptyOperationTaskStatusEventHandler<TestCommand>());
+            activator.Register(() =>
+                new FailedOperationHandler<OperationTask<TestCommand>>(
+                    NullLogger<FailedOperationHandler<OperationTask<TestCommand>>>.Instance,
+                    wf.Messaging));
+        }, messageEnricher);
+        TestOperationManager.Reset();
+        TestTaskManager.Reset();
+        
+        await setup.OperationDispatcher.StartNew<TestCommand>(additionalHeaders: 
+            new Dictionary<string, string>{{"custom_header", "data"}});
+        await Task.Delay(1000);
+        Assert.True(ExposingHeadersCommandHandler.Called);
+        var headers = ExposingHeadersCommandHandler.Headers;
+        Assert.Contains(headers, x => x.Key == "custom_header");
+        
+    }
+
+    private class TestMessageEnricher : IMessageEnricher
+    {
+        public object? EnrichTaskAcceptedReply<T>(OperationTaskSystemMessage<T> taskMessage) where T : class, new()
+        {
+            return null;
+        }
+
+        private static IDictionary<string, string>? CopyCustomHeader(IDictionary<string, string>? headers)
+        {
+            if (headers == null || !headers.ContainsKey("custom_header"))
+                return null;
+
+            return new Dictionary<string, string> { { "custom_header", headers["custom_header"] } };
+        }
+        
+        public IDictionary<string, string>? EnrichHeadersFromIncomingSystemMessage<T>(OperationTaskSystemMessage<T> taskMessage,
+            IDictionary<string, string> systemMessageHeaders)
+        {
+            return CopyCustomHeader(systemMessageHeaders);
+        }
+
+        public IDictionary<string, string>? EnrichHeadersOfOutgoingSystemMessage(object taskMessage, IDictionary<string, string>? previousHeaders)
+        {
+            return CopyCustomHeader(previousHeaders);
+        }
+
+        public IDictionary<string, string>? EnrichHeadersOfStatusEvent(OperationStatusEvent operationStatusEvent, IDictionary<string, string>? previousHeaders)
+        {
+            return CopyCustomHeader(previousHeaders);
+        }
+
+        public IDictionary<string, string>? EnrichHeadersOfTaskStatusEvent(OperationTaskStatusEvent operationStatusEvent,
+            IDictionary<string, string>? previousHeaders)
+        {
+            return CopyCustomHeader(previousHeaders);
+        }
     }
 }

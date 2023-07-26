@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dbosoft.Rebus.Operations.Workflow;
 using Microsoft.Extensions.Logging;
@@ -14,8 +15,9 @@ public class DefaultOperationDispatcher : OperationDispatcherBase
 
     public DefaultOperationDispatcher(
         IBus bus,
+        WorkflowOptions workflowOptions,
         ILogger<DefaultOperationDispatcher> logger,
-        IOperationManager operationManager) : base(bus, logger)
+        IOperationManager operationManager) : base(bus, workflowOptions, logger)
     {
         _operationManager = operationManager;
     }

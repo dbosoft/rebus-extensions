@@ -1,6 +1,8 @@
 using Dbosoft.Rebus.Operations;
 using Dbosoft.Rebus.Operations.Tests;
+using Dbosoft.Rebus.Operations.Workflow;
 using Rebus.Persistence.InMem;
+using Rebus.Routing.TypeBased;
 using Rebus.Transport.InMem;
 using SimpleInjector;
 using Xunit.Abstractions;
@@ -16,20 +18,31 @@ public abstract class SimpleInjectorTestBase
         _output = output;
     }
 
-    public void SetupRebus(Container container)
+    public void SetupRebus(Container container, bool sendMode, string eventDestination)
     {
         var rebusNetwork = new InMemNetwork();
         
         container.Register<IRebusUnitOfWork, TestRebusUnitOfWork>(Lifestyle.Scoped);
+        container.RegisterInstance(new WorkflowOptions
+        {
+            DispatchMode = sendMode ? WorkflowEventDispatchMode.Send : WorkflowEventDispatchMode.Publish,
+            EventDestination = eventDestination,
+            OperationsDestination = eventDestination
+        });
         container.AddRebusOperationsHandlers<TestOperationManager, TestTaskManager>();
         container.ConfigureRebus(configurer =>
         {
             return configurer
                 .Options(o => o.EnableSimpleInjectorUnitOfWork())
                 .Transport(cfg => cfg.UseInMemoryTransport(rebusNetwork, "main"))
-                .AddOperations("main")
+                .Routing(r =>
+                {
+                    if(string.IsNullOrWhiteSpace(eventDestination))
+                        r.TypeBased().AddOperations("main");
+                    
+                })
                 .Sagas(x => x.StoreInMemory())
-                .Subscriptions(x=>x.StoreInMemory())
+                .Subscriptions(x=>x.StoreInMemory(new InMemorySubscriberStore()))
                 .Logging(x=>x.Use(new RebusTestLogging(_output)))
 
                 .Start();
