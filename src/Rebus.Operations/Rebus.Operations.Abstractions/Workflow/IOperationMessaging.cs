@@ -13,20 +13,4 @@ public interface IOperationMessaging
 
     IOperationDispatcher OperationDispatcher { get; }
     IOperationTaskDispatcher TaskDispatcher { get; }
-
-    Task FailTask(IOperationTaskMessage message, string errorMessage,
-        IDictionary<string, string>? additionalHeaders = null);
-
-    Task FailTask(IOperationTaskMessage message, ErrorData error,
-        IDictionary<string, string>? additionalHeaders = null);
-
-
-    Task CompleteTask(IOperationTaskMessage message, IDictionary<string, string>? additionalHeaders = null);
-
-    Task CompleteTask(IOperationTaskMessage message, object responseMessage,
-        IDictionary<string, string>? additionalHeaders = null);
-
-
-    Task ProgressMessage(IOperationTaskMessage message, object data,
-        IDictionary<string, string>? additionalHeaders = null);
 }

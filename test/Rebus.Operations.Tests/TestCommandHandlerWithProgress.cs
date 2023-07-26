@@ -6,8 +6,8 @@ namespace Dbosoft.Rebus.Operations.Tests;
 
 public class TestCommandHandlerWithProgress : IHandleMessages<OperationTask<TestCommand>>
 {
-    private readonly IOperationMessaging _messaging;
-    public TestCommandHandlerWithProgress(IOperationMessaging messaging)
+    private readonly ITaskMessaging _messaging;
+    public TestCommandHandlerWithProgress(ITaskMessaging messaging)
     {
         _messaging = messaging;
     }

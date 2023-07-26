@@ -1,10 +1,6 @@
 using System;
-using Dbosoft.Rebus.Operations.Commands;
-using Dbosoft.Rebus.Operations.Events;
 using Dbosoft.Rebus.Operations.Workflow;
-using Rebus.Config;
 using Rebus.Handlers;
-using Rebus.Routing.TypeBased;
 using SimpleInjector;
 
 namespace Dbosoft.Rebus.Operations;
@@ -31,14 +27,24 @@ public static class SimpleInjectorExtensions
         container.RegisterConditional<IWorkflow, DefaultWorkflow>(Lifestyle.Scoped,c=> !c.Handled);
 
         container.RegisterConditional<IOperationMessaging, RebusOperationMessaging>(Lifestyle.Scoped, c=> !c.Handled);
-        container.RegisterConditional<IMessageEnricher, DefaultMessageEnricher>(Lifestyle.Scoped, c=> !c.Handled);
-
+   
         container.Collection.Append(typeof(IHandleMessages<>), typeof(ProcessOperationSaga), Lifestyle.Scoped);
         container.Collection.Append(typeof(IHandleMessages<>), typeof(OperationTaskProgressEventHandler), Lifestyle.Scoped);
         container.Collection.Append(typeof(IHandleMessages<>), typeof(FailedOperationHandler<>), Lifestyle.Scoped);
-        container.Collection.Append(typeof(IHandleMessages<>), typeof(IncomingTaskMessageHandler<>), Lifestyle.Scoped);
         container.Collection.Append(typeof(IHandleMessages<>), typeof(EmptyOperationStatusEventHandler), Lifestyle.Scoped);
         container.Collection.Append(typeof(IHandleMessages<>), typeof(EmptyOperationTaskStatusEventHandler<>), Lifestyle.Scoped);
+
+        AddRebusOperationsHandlers(container);
+        return container;
+    }
+    
+    public static Container AddRebusOperationsHandlers(this Container container)
+    {
+  
+        container.RegisterConditional<ITaskMessaging, RebusTaskMessaging>(Lifestyle.Scoped, c=> !c.Handled);
+        container.RegisterConditional<IMessageEnricher, DefaultMessageEnricher>(Lifestyle.Scoped, c=> !c.Handled);
+
+        container.Collection.Append(typeof(IHandleMessages<>), typeof(IncomingTaskMessageHandler<>), Lifestyle.Scoped);
 
         return container;
     }

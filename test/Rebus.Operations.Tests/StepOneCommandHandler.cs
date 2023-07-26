@@ -6,9 +6,9 @@ namespace Dbosoft.Rebus.Operations.Tests;
 
 public class StepOneCommandHandler : IHandleMessages<OperationTask<StepOneCommand>>
 {
-    private readonly IOperationMessaging _messaging;
+    private readonly ITaskMessaging _messaging;
 
-    public StepOneCommandHandler(IOperationMessaging messaging)
+    public StepOneCommandHandler(ITaskMessaging messaging)
     {
         _messaging = messaging;
     }

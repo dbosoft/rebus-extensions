@@ -24,7 +24,7 @@ public abstract class RebusTestBase
 
     public async Task<TestRebusSetup> SetupRebus(
         bool sendMode, string eventDestination,
-        Action<BuiltinHandlerActivator, IWorkflow, IBus> configureActivator)
+        Action<BuiltinHandlerActivator, IWorkflow, ITaskMessaging, IBus> configureActivator)
     {
         var rebusNetwork = new InMemNetwork();
 
@@ -70,11 +70,13 @@ public abstract class RebusTestBase
             opManager, taskManager, new RebusOperationMessaging(busStarter.Bus,
                 opDispatcher, taskDispatcher,workflowOptions ));
 
+        var taskMessaging = new RebusTaskMessaging(busStarter.Bus, workflowOptions);
+        
         activator.Register(() => new ProcessOperationSaga(workflow, NullLogger.Instance));
         activator.Register(() =>
             new OperationTaskProgressEventHandler(workflow, NullLogger<OperationTaskProgressEventHandler>.Instance));
         
-        configureActivator(activator,workflow, busStarter.Bus);
+        configureActivator(activator,workflow, taskMessaging, busStarter.Bus);
 
         var bus = busStarter.Start();
         

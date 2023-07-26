@@ -23,11 +23,11 @@ public class WorkflowTests : RebusTestBase
     {
         TestCommandHandler? taskHandler = null;
 
-        using var setup = await SetupRebus(sendMode, eventDestination, configureActivator: (activator, wf, bus) =>
+        using var setup = await SetupRebus(sendMode, eventDestination, configureActivator: (activator,_,tasks, bus) =>
         {
             activator.Register(() => new IncomingTaskMessageHandler<TestCommand>(bus,
                 NullLogger<IncomingTaskMessageHandler<TestCommand>>.Instance, new DefaultMessageEnricher()));
-            taskHandler = new TestCommandHandler(wf.Messaging);
+            taskHandler = new TestCommandHandler(tasks);
             activator.Register(() => taskHandler);
             activator.Register(() => new EmptyOperationStatusEventHandler());
             activator.Register(() => new EmptyOperationTaskStatusEventHandler<TestCommand>());
@@ -53,7 +53,7 @@ public class WorkflowTests : RebusTestBase
     {
         StepOneCommandHandler? stepOneHandler;
         StepTwoCommandHandler? stepTwoHandler;
-        using var setup = await SetupRebus(sendMode, eventDestination, configureActivator: (activator, wf, bus) =>
+        using var setup = await SetupRebus(sendMode, eventDestination, configureActivator: (activator, wf, tasks, bus) =>
         {
             activator.Register(() => new IncomingTaskMessageHandler<MultiStepCommand>(bus,
                 NullLogger<IncomingTaskMessageHandler<MultiStepCommand>>.Instance, new DefaultMessageEnricher()));
@@ -65,8 +65,8 @@ public class WorkflowTests : RebusTestBase
             activator.Register(() => new EmptyOperationStatusEventHandler());
             activator.Register(() => new MultiStepSaga(wf));
 
-            stepOneHandler = new StepOneCommandHandler(wf.Messaging);
-            stepTwoHandler = new StepTwoCommandHandler(wf.Messaging);
+            stepOneHandler = new StepOneCommandHandler(tasks);
+            stepTwoHandler = new StepTwoCommandHandler(tasks);
             activator.Register(() => stepOneHandler);
             activator.Register(() => stepTwoHandler);
         });
@@ -97,7 +97,7 @@ public class WorkflowTests : RebusTestBase
     [InlineData(true, "main")]
     public async Task Progress_is_reported(bool sendMode, string eventDestination)
     {
-        using var setup = await SetupRebus(sendMode, eventDestination, configureActivator: (activator, wf, bus) =>
+        using var setup = await SetupRebus(sendMode, eventDestination, configureActivator: (activator, wf,tasks, bus) =>
         {
             activator.Register(() => new IncomingTaskMessageHandler<TestCommand>(bus,
                 NullLogger<IncomingTaskMessageHandler<TestCommand>>.Instance, new DefaultMessageEnricher()));
@@ -106,7 +106,7 @@ public class WorkflowTests : RebusTestBase
                 NullLogger<OperationTaskProgressEventHandler>.Instance));
 
             activator.Register(() => new EmptyOperationTaskStatusEventHandler<TestCommand>());
-            activator.Register(() => new TestCommandHandlerWithProgress(wf.Messaging));
+            activator.Register(() => new TestCommandHandlerWithProgress(tasks));
         });
         
         TestOperationManager.Reset();
@@ -126,11 +126,11 @@ public class WorkflowTests : RebusTestBase
     public async Task SingleStep_Operation_failure_is_reported(bool throws)
     {
   
-        using var setup = await SetupRebus(false, "", configureActivator: (activator, wf, bus) =>
+        using var setup = await SetupRebus(false, "", configureActivator: (activator, wf,tasks, bus) =>
         {
             activator.Register(() => new IncomingTaskMessageHandler<TestCommand>(bus,
                 NullLogger<IncomingTaskMessageHandler<TestCommand>>.Instance, new DefaultMessageEnricher()));
-            activator.Register(() => new TestCommandHandlerWithError(throws, wf.Messaging));
+            activator.Register(() => new TestCommandHandlerWithError(throws, tasks));
             activator.Register(() => new EmptyOperationStatusEventHandler());
             activator.Register(() => new EmptyOperationTaskStatusEventHandler<TestCommand>());
             activator.Register(() =>

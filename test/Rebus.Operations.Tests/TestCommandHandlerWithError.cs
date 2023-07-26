@@ -6,10 +6,10 @@ namespace Dbosoft.Rebus.Operations.Tests;
 
 public class TestCommandHandlerWithError : IHandleMessages<OperationTask<TestCommand>>
 {
-    private readonly IOperationMessaging _messaging;
+    private readonly ITaskMessaging _messaging;
     private readonly bool _throws;
 
-    public TestCommandHandlerWithError(bool throws, IOperationMessaging messaging)
+    public TestCommandHandlerWithError(bool throws, ITaskMessaging messaging)
     {
         _throws = throws;
         _messaging = messaging;
