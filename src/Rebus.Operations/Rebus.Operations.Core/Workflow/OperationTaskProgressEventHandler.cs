@@ -3,6 +3,7 @@ using Dbosoft.Rebus.Operations.Events;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using Rebus.Handlers;
+using Rebus.Pipeline;
 
 namespace Dbosoft.Rebus.Operations.Workflow
 {
@@ -39,7 +40,7 @@ namespace Dbosoft.Rebus.Operations.Workflow
                     message.Timestamp,
                     operation,
                     task,
-                    message.Data);
+                    message.Data, MessageContext.Current.Headers);
             }
             else
             {

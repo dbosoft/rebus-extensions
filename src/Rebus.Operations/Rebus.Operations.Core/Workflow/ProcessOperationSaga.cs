@@ -8,6 +8,7 @@ using Dbosoft.Rebus.Operations.Events;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using Rebus.Handlers;
+using Rebus.Pipeline;
 using Rebus.Sagas;
 
 namespace Dbosoft.Rebus.Operations.Workflow
@@ -117,7 +118,8 @@ namespace Dbosoft.Rebus.Operations.Workflow
             }
 
             var opOldStatus = op.Status;
-            if (await _workflow.Operations.TryChangeStatusAsync(op, OperationStatus.Running, null))
+            if (await _workflow.Operations.TryChangeStatusAsync(op, OperationStatus.Running, null, 
+                    MessageContext.Current.Headers))
             {
                 _log.LogDebug("Operation Workflow {operationId}: Status changed: {oldStatus} -> {newStatus}",
                     message.OperationId, opOldStatus, op.Status);
@@ -195,7 +197,7 @@ namespace Dbosoft.Rebus.Operations.Workflow
 
 
                 if (await _workflow.Operations.TryChangeStatusAsync(op,
-                        newStatus, message.GetMessage()))
+                        newStatus, message.GetMessage(), MessageContext.Current.Headers))
                 {
                     await _workflow.Messaging.DispatchOperationStatusEventAsync(new OperationStatusEvent
                     {

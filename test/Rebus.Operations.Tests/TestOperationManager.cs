@@ -21,7 +21,8 @@ public class TestOperationManager : OperationManagerBase
 
     }
 
-    public override ValueTask<IOperation> GetOrCreateAsync(Guid operationId, object command)
+    public override ValueTask<IOperation> GetOrCreateAsync(Guid operationId, object command,
+        object? additionalData, IDictionary<string,string>? additionalHeaders)
     {
         if (Operations.ContainsKey(operationId))
             return GetByIdAsync(operationId)!;
@@ -35,7 +36,8 @@ public class TestOperationManager : OperationManagerBase
         return new ValueTask<IOperation>(op);
     }
 
-    public override ValueTask<bool> TryChangeStatusAsync(IOperation operation, OperationStatus newStatus, object? additionalData)
+    public override ValueTask<bool> TryChangeStatusAsync(IOperation operation, OperationStatus newStatus, 
+        object? additionalData, IDictionary<string,string>? messageHeaders)
     {
         if (!Operations.ContainsKey(operation.Id))
             return new ValueTask<bool>(false);
@@ -46,7 +48,7 @@ public class TestOperationManager : OperationManagerBase
     }
 
     public override ValueTask AddProgressAsync(Guid progressId, DateTimeOffset timestamp, IOperation operation, IOperationTask task,
-        object? data)
+        object? data, IDictionary<string,string>? messageHeaders)
     {
         if(!Progress.ContainsKey(progressId))
             Progress.Add(operation.Id, new List<object>());
