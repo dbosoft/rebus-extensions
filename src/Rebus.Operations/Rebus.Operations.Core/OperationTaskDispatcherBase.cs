@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Dbosoft.Rebus.Operations.Commands;
-using Dbosoft.Rebus.Operations.Workflow;
 using Microsoft.Extensions.Logging;
 using Rebus.Bus;
 
@@ -52,7 +51,7 @@ public abstract class OperationTaskDispatcherBase : IOperationTaskDispatcher
             throw new ArgumentNullException(nameof(command));
 
         var (task, taskCommand) = await CreateTask(operationId, initiatingTaskId, command, additionalData, additionalHeaders);
-        var commandJson = JsonSerializer.Serialize(taskCommand);
+        var commandJson = JsonSerializer.Serialize(taskCommand, _options.JsonSerializerOptions);
 
         var taskMessage = new CreateNewOperationTaskCommand(
             taskCommand.GetType().AssemblyQualifiedName,
