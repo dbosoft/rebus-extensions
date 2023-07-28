@@ -26,16 +26,16 @@ public class OperationTaskStatusEventBase : IOperationTaskMessage
     public Guid TaskId { get; set; }
     public Guid InitiatingTaskId { get; set; }
 
-    protected static (string? data, string? type) SerializeMessage(object? message)
+    protected static (string? data, string? type) SerializeMessage(object? message, JsonSerializerOptions serializerOptions)
     {
         if (message == null)
             return (null, null);
 
 
-        return (JsonSerializer.Serialize(message), message.GetType().AssemblyQualifiedName);
+        return (JsonSerializer.Serialize(message, serializerOptions), message.GetType().AssemblyQualifiedName);
     }
 
-    public object? GetMessage()
+    public object? GetMessage(JsonSerializerOptions serializerOptions)
     {
         if (MessageData == null || MessageType == null)
             return null;
@@ -44,10 +44,10 @@ public class OperationTaskStatusEventBase : IOperationTaskMessage
 
         return type == null
             ? null
-            : JsonSerializer.Deserialize(MessageData, type);
+            : JsonSerializer.Deserialize(MessageData, type, serializerOptions);
     }
 
-    public T? GetErrorDetails<T>()
+    public T? GetErrorDetails<T>(JsonSerializerOptions serializerOptions)
     {
         if (MessageData == null || MessageType == null)
             return default;
@@ -58,11 +58,11 @@ public class OperationTaskStatusEventBase : IOperationTaskMessage
 
         if (type != typeof(ErrorData) && !type.IsSubclassOf(typeof(ErrorData))) return default;
 
-        var data = JsonSerializer.Deserialize(MessageData, type) as ErrorData;
+        var data = JsonSerializer.Deserialize(MessageData, type, serializerOptions) as ErrorData;
 
         if ( data?.AdditionalData is JsonElement element)
         {
-            return element.Deserialize<T>();
+            return element.Deserialize<T>(serializerOptions);
         }
 
         return default;

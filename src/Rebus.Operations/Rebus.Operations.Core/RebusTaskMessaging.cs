@@ -29,7 +29,7 @@ public class RebusTaskMessaging : ITaskMessaging
         return _bus.SendWorkflowEvent(_options,
             OperationTaskStatusEvent.Failed(
                 message.OperationId, message.InitiatingTaskId,
-                message.TaskId, error),additionalHeaders );
+                message.TaskId, error,_options.JsonSerializerOptions),additionalHeaders );
     }
 
 
@@ -44,7 +44,8 @@ public class RebusTaskMessaging : ITaskMessaging
     {
         return _bus.SendWorkflowEvent(_options,
             OperationTaskStatusEvent.Completed(
-                message.OperationId, message.InitiatingTaskId, message.TaskId, responseMessage), additionalHeaders);
+                message.OperationId, message.InitiatingTaskId, message.TaskId, responseMessage, 
+                _options.JsonSerializerOptions), additionalHeaders);
     }
 
 

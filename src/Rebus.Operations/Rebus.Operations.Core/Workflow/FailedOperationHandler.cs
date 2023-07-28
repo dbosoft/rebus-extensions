@@ -14,10 +14,14 @@ namespace Dbosoft.Rebus.Operations.Workflow
     {
         private readonly IOperationMessaging _operationMessaging;
 
+        private readonly WorkflowOptions _workflowOptions;
         private readonly ILogger<FailedOperationHandler<T>> _logger;
 
-        public FailedOperationHandler(ILogger<FailedOperationHandler<T>> logger, IOperationMessaging operationMessaging)
+        public FailedOperationHandler(
+            WorkflowOptions workflowOptions,
+            ILogger<FailedOperationHandler<T>> logger, IOperationMessaging operationMessaging)
         {
+            _workflowOptions = workflowOptions;
             _logger = logger;
             _operationMessaging = operationMessaging;
         }
@@ -32,7 +36,8 @@ namespace Dbosoft.Rebus.Operations.Workflow
             await _operationMessaging.DispatchTaskStatusEventAsync(
                 OperationTaskStatusEvent.Failed(
                     failedMessage.Message.OperationId, failedMessage.Message.InitiatingTaskId,
-                    failedMessage.Message.TaskId, new ErrorData() { ErrorMessage = failedMessage.ErrorDescription }));
+                    failedMessage.Message.TaskId, new ErrorData() { ErrorMessage = failedMessage.ErrorDescription },
+                    _workflowOptions.JsonSerializerOptions));
 
 
         }

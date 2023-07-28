@@ -137,6 +137,7 @@ public class WorkflowTests : RebusTestBase
             activator.Register(() => new EmptyOperationTaskStatusEventHandler<TestCommand>());
             activator.Register(() =>
                 new FailedOperationHandler<OperationTask<TestCommand>>(
+                    wf.WorkflowOptions,
                     NullLogger<FailedOperationHandler<OperationTask<TestCommand>>>.Instance,
                     wf.Messaging));
         });
@@ -162,6 +163,7 @@ public class WorkflowTests : RebusTestBase
             activator.Register(() => new EmptyOperationTaskStatusEventHandler<TestCommand>());
             activator.Register(() =>
                 new FailedOperationHandler<OperationTask<TestCommand>>(
+                    wf.WorkflowOptions,
                     NullLogger<FailedOperationHandler<OperationTask<TestCommand>>>.Instance,
                     wf.Messaging));
         }, messageEnricher);
@@ -173,6 +175,7 @@ public class WorkflowTests : RebusTestBase
         await Task.Delay(1000);
         Assert.True(ExposingHeadersCommandHandler.Called);
         var headers = ExposingHeadersCommandHandler.Headers;
+        Assert.NotNull(headers);
         Assert.Contains(headers, x => x.Key == "custom_header");
         
     }

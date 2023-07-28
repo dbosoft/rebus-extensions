@@ -67,6 +67,7 @@ public abstract class RebusTestBase
 
         messageEnricher ??= new DefaultMessageEnricher();
         var workflow = new DefaultWorkflow(
+            workflowOptions,
             opManager, taskManager, new RebusOperationMessaging(busStarter.Bus,
                 opDispatcher, taskDispatcher,messageEnricher, workflowOptions ));
 

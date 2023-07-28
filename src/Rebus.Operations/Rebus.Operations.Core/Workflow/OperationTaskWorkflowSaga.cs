@@ -58,21 +58,23 @@ namespace Dbosoft.Rebus.Operations.Workflow
         protected Task Fail(object? message = null)
         {
             return WorkflowEngine.Messaging.DispatchTaskStatusEventAsync(OperationTaskStatusEvent.Failed(
-                Data.OperationId, Data.ParentTaskId, Data.SagaTaskId, message));
+                Data.OperationId, Data.ParentTaskId, Data.SagaTaskId, message, 
+                WorkflowEngine.WorkflowOptions.JsonSerializerOptions));
         }
 
 
         protected Task Complete(object? message = null)
         {
             return WorkflowEngine.Messaging.DispatchTaskStatusEventAsync(OperationTaskStatusEvent.Completed(
-                Data.OperationId, Data.ParentTaskId, Data.SagaTaskId, message));
+                Data.OperationId, Data.ParentTaskId, Data.SagaTaskId, message,
+                WorkflowEngine.WorkflowOptions.JsonSerializerOptions));
         }
 
         protected Task FailOrRun<T>(OperationTaskStatusEvent<T> message, Func<Task> completedFunc)
             where T : class, new()
         {
             if (message.OperationFailed)
-                return Fail(message.GetMessage());
+                return Fail(message.GetMessage(WorkflowEngine.WorkflowOptions.JsonSerializerOptions));
 
             return completedFunc();
         }
@@ -82,8 +84,8 @@ namespace Dbosoft.Rebus.Operations.Workflow
             where TOpMessage : class
         {
             return message.OperationFailed 
-                ? Fail(message.GetMessage()) 
-                : completedFunc(message.GetMessage() as TOpMessage 
+                ? Fail(message.GetMessage(WorkflowEngine.WorkflowOptions.JsonSerializerOptions)) 
+                : completedFunc(message.GetMessage(WorkflowEngine.WorkflowOptions.JsonSerializerOptions) as TOpMessage 
                                 ?? throw new InvalidOperationException(
                                     $"Message {typeof(T)} has not returned a result of type {typeof(TOpMessage)}."));
         }
