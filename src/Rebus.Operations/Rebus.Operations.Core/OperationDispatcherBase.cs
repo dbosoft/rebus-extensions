@@ -52,7 +52,7 @@ namespace Dbosoft.Rebus.Operations
 
             var(operation, taskCommand) = await CreateOperation(command, additionalData, additionalHeaders);
             
-            var commandJson = JsonSerializer.Serialize(taskCommand);
+            var commandJson = JsonSerializer.Serialize(taskCommand, _options.JsonSerializerOptions);
 
             var taskMessage = new CreateNewOperationTaskCommand(
                 taskCommand.GetType().AssemblyQualifiedName,
