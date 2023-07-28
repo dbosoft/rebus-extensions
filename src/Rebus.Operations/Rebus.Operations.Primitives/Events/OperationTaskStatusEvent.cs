@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.Json;
 
 namespace Dbosoft.Rebus.Operations.Events
 {
@@ -22,9 +23,9 @@ namespace Dbosoft.Rebus.Operations.Events
             return new OperationTaskStatusEvent(operationId, initiatingTaskId, taskId, true, null, null);
         }
 
-        public static OperationTaskStatusEvent Failed(Guid operationId, Guid initiatingTaskId, Guid taskId, object? message)
+        public static OperationTaskStatusEvent Failed(Guid operationId, Guid initiatingTaskId, Guid taskId, object? message, JsonSerializerOptions serializerOptions)
         {
-            var (data, typeName) = SerializeMessage(message);
+            var (data, typeName) = SerializeMessage(message, serializerOptions);
             return new OperationTaskStatusEvent(operationId, initiatingTaskId, taskId, true, typeName, data);
         }
 
@@ -33,9 +34,9 @@ namespace Dbosoft.Rebus.Operations.Events
             return new OperationTaskStatusEvent(operationId, initiatingTaskId, taskId, false, null, null);
         }
 
-        public static OperationTaskStatusEvent Completed(Guid operationId, Guid initiatingTaskId, Guid taskId, object? message)
+        public static OperationTaskStatusEvent Completed(Guid operationId, Guid initiatingTaskId, Guid taskId, object? message, JsonSerializerOptions serializerOptions)
         {
-            var (data, typeName) = SerializeMessage(message);
+            var (data, typeName) = SerializeMessage(message, serializerOptions);
             return new OperationTaskStatusEvent(operationId, initiatingTaskId,taskId, false, typeName, data);
         }
 

@@ -64,7 +64,8 @@ namespace Dbosoft.Rebus.Operations.Workflow
 
             var command = JsonSerializer.Deserialize(message.CommandData,
                 Type.GetType(message.CommandType) ??
-                throw new InvalidOperationException($"Operation Workflow {message.OperationId}: unknown command type '{message.CommandType}'"));
+                throw new InvalidOperationException($"Operation Workflow {message.OperationId}: unknown command type '{message.CommandType}'"),
+                _workflow.WorkflowOptions.JsonSerializerOptions);
             
             if(command == null)
                 throw new InvalidOperationException($"Operation Workflow {message.OperationId}: invalid command data in message '{message.CommandType}'");
@@ -178,7 +179,7 @@ namespace Dbosoft.Rebus.Operations.Workflow
                 message.OperationFailed
                     ? OperationTaskStatus.Failed
                     : OperationTaskStatus.Completed
-                , message.GetMessage()))
+                , message.GetMessage(_workflow.WorkflowOptions.JsonSerializerOptions)))
 
                 _log.LogDebug("Operation Workflow {operationId}, Task {taskId}: Status changed: {oldStatus} -> {newStatus}",
                     message.OperationId, message.TaskId, taskOldStatus, task.Status);
@@ -197,7 +198,7 @@ namespace Dbosoft.Rebus.Operations.Workflow
 
 
                 if (await _workflow.Operations.TryChangeStatusAsync(op,
-                        newStatus, message.GetMessage(), MessageContext.Current.Headers))
+                        newStatus, message.GetMessage(_workflow.WorkflowOptions.JsonSerializerOptions), MessageContext.Current.Headers))
                 {
                     await _workflow.Messaging.DispatchOperationStatusEventAsync(new OperationStatusEvent
                     {
