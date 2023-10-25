@@ -4,7 +4,7 @@ using System.Text.Json;
 namespace Dbosoft.Rebus.Operations.Events;
 
 #nullable enable
-public class OperationTaskStatusEventBase : IOperationTaskMessage
+public class OperationTaskStatusEventBase : IOperationTaskStatusEvent
 {
     public OperationTaskStatusEventBase() {}
 

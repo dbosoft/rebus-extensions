@@ -13,5 +13,4 @@ namespace Dbosoft.Rebus.Operations
 
         Guid TaskId { get;  }
     }
-
 }
