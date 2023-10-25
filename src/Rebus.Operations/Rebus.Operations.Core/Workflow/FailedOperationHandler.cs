@@ -33,10 +33,16 @@ namespace Dbosoft.Rebus.Operations.Workflow
                 failedMessage.Message.TaskId, failedMessage.ErrorDescription
                 );
 
+            var failedTaskId = failedMessage.Message.TaskId;
+
+            // assign errors on status events to initiating task
+            if(failedMessage.Message is IOperationTaskStatusEvent statusEvent)
+                failedTaskId = statusEvent.InitiatingTaskId;
+
             await _operationMessaging.DispatchTaskStatusEventAsync(
                 OperationTaskStatusEvent.Failed(
                     failedMessage.Message.OperationId, failedMessage.Message.InitiatingTaskId,
-                    failedMessage.Message.TaskId, new ErrorData() { ErrorMessage = failedMessage.ErrorDescription },
+                    failedTaskId, new ErrorData() { ErrorMessage = failedMessage.ErrorDescription },
                     _workflowOptions.JsonSerializerOptions));
 
 
