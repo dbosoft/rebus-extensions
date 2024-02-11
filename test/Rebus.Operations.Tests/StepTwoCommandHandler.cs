@@ -7,10 +7,12 @@ namespace Dbosoft.Rebus.Operations.Tests;
 public class StepTwoCommandHandler : IHandleMessages<OperationTask<StepTwoCommand>>
 {
     private readonly ITaskMessaging _messaging;
+    private readonly bool _throws;
 
-    public StepTwoCommandHandler(ITaskMessaging messaging)
+    public StepTwoCommandHandler(ITaskMessaging messaging, bool throws)
     {
         _messaging = messaging;
+        _throws = throws;
     }
 
     public static bool Called { get; set; }
@@ -18,6 +20,10 @@ public class StepTwoCommandHandler : IHandleMessages<OperationTask<StepTwoComman
     public Task Handle(OperationTask<StepTwoCommand> message)
     {
         Called = true;
+
+        if (_throws)
+            throw new Exception("Failed");
+
         return _messaging.CompleteTask(message);
     }
 }
