@@ -7,17 +7,16 @@ namespace Dbosoft.Rebus.Operations.Tests;
 public class TestCommandHandlerWithError : IHandleMessages<OperationTask<TestCommand>>
 {
     private readonly ITaskMessaging _messaging;
-    private readonly bool _throws;
+    public bool Throws { get; set; }
 
-    public TestCommandHandlerWithError(bool throws, ITaskMessaging messaging)
+    public TestCommandHandlerWithError(ITaskMessaging messaging)
     {
-        _throws = throws;
         _messaging = messaging;
     }
     
     public async Task Handle(OperationTask<TestCommand> message)
     {
-        if (_throws)
+        if (Throws)
             throw new InvalidOperationException();
         
         await _messaging.FailTask(message, "error");

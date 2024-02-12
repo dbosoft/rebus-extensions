@@ -3,6 +3,7 @@ using Dbosoft.Rebus.Operations.Commands;
 using Dbosoft.Rebus.Operations.Events;
 using Dbosoft.Rebus.Operations.Workflow;
 using Microsoft.Extensions.Logging.Abstractions;
+using Rebus.Retry.Simple;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -97,6 +98,62 @@ public class WorkflowTests : RebusTestBase
     [InlineData(true, "")]
     [InlineData(false, "main")]
     [InlineData(true, "main")]
+    public async Task MultiStep_Operation_Exception_is_reported(bool sendMode, string eventDestination)
+    {
+        StepOneCommandHandler? stepOneHandler;
+        StepTwoCommandHandler? stepTwoHandler;
+        using var setup = await SetupRebus(sendMode, eventDestination, configureActivator: (activator, wf, tasks, bus) =>
+        {
+            activator.Register(() => new IncomingTaskMessageHandler<MultiStepCommand>(bus,
+                NullLogger<IncomingTaskMessageHandler<MultiStepCommand>>.Instance, new DefaultMessageEnricher()));
+            activator.Register(() => new IncomingTaskMessageHandler<StepOneCommand>(bus,
+                NullLogger<IncomingTaskMessageHandler<StepOneCommand>>.Instance, new DefaultMessageEnricher()));
+            activator.Register(() => new IncomingTaskMessageHandler<StepTwoCommand>(bus,
+                NullLogger<IncomingTaskMessageHandler<StepTwoCommand>>.Instance, new DefaultMessageEnricher()));
+
+            activator.Register(() => new EmptyOperationStatusEventHandler());
+            activator.Register(() => new MultiStepSaga(wf));
+            activator.Register(() => new FailedOperationHandler<OperationTask<StepTwoCommand>>(wf.WorkflowOptions,
+                NullLogger< FailedOperationHandler<OperationTask<StepTwoCommand>>>.Instance,
+                wf.Messaging));
+
+            stepOneHandler = new StepOneCommandHandler(tasks);
+            stepTwoHandler = new StepTwoCommandHandler(tasks){Throws = true};
+            activator.Register(() => stepOneHandler);
+            activator.Register(() => stepTwoHandler);
+        });
+
+        TestOperationManager.Reset();
+        TestTaskManager.Reset();
+        StepOneCommandHandler.Called = false;
+        StepTwoCommandHandler.Called = false;
+
+        await setup.OperationDispatcher.StartNew<MultiStepCommand>();
+
+        var timeout = new CancellationTokenSource(60000);
+        while (
+                !timeout.Token.IsCancellationRequested &&
+                (TestOperationManager.Operations.First().Value.Status == OperationStatus.Running ||
+                 TestOperationManager.Operations.First().Value.Status == OperationStatus.Queued))
+            // ReSharper disable once MethodSupportsCancellation
+        {
+            await Task.Delay(1000);
+        }
+
+        Assert.True(StepOneCommandHandler.Called);
+        Assert.True(StepTwoCommandHandler.Called);
+        Assert.Single(TestOperationManager.Operations);
+        Assert.Equal(3, TestTaskManager.Tasks.Count);
+        Assert.Equal(OperationStatus.Failed, TestOperationManager.Operations.First().Value.Status);
+
+
+    }
+
+    [Theory]
+    [InlineData(false, "")]
+    [InlineData(true, "")]
+    [InlineData(false, "main")]
+    [InlineData(true, "main")]
     public async Task Progress_is_reported(bool sendMode, string eventDestination)
     {
         using var setup = await SetupRebus(sendMode, eventDestination, configureActivator: (activator, wf,tasks, bus) =>
@@ -132,7 +189,7 @@ public class WorkflowTests : RebusTestBase
         {
             activator.Register(() => new IncomingTaskMessageHandler<TestCommand>(bus,
                 NullLogger<IncomingTaskMessageHandler<TestCommand>>.Instance, new DefaultMessageEnricher()));
-            activator.Register(() => new TestCommandHandlerWithError(throws, tasks));
+            activator.Register(() => new TestCommandHandlerWithError(tasks){Throws = true});
             activator.Register(() => new EmptyOperationStatusEventHandler());
             activator.Register(() => new EmptyOperationTaskStatusEventHandler<TestCommand>());
             activator.Register(() =>
@@ -145,7 +202,15 @@ public class WorkflowTests : RebusTestBase
         TestTaskManager.Reset();
         
         await setup.OperationDispatcher.StartNew<TestCommand>();
-        await Task.Delay(throws ? 2000: 1000);
+        var timeout = new CancellationTokenSource(10000);
+        while (
+                !timeout.Token.IsCancellationRequested &&
+                (TestOperationManager.Operations.First().Value.Status == OperationStatus.Running ||
+                 TestOperationManager.Operations.First().Value.Status == OperationStatus.Queued))
+            // ReSharper disable once MethodSupportsCancellation
+        {
+            await Task.Delay(1000);
+        }
         Assert.Equal(OperationStatus.Failed ,TestOperationManager.Operations.First().Value.Status);
 
     }

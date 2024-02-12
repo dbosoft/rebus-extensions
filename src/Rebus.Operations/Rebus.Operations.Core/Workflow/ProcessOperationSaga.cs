@@ -212,6 +212,24 @@ namespace Dbosoft.Rebus.Operations.Workflow
 
                 MarkAsComplete();
             }
+            else
+            {
+                // capture failed operations and send status events to initiating task
+                if (message.OperationFailed)
+                {
+                    var initiatingTask = await _workflow.Tasks
+                        .GetByIdAsync(message.TaskId)
+                        .ConfigureAwait(false);
+
+                    if (initiatingTask != null && Data.Tasks.TryGetValue(initiatingTask.Id, out var taskCommandTypeName))
+                    {
+                        message.InitiatingTaskId = initiatingTask.InitiatingTaskId;
+                        message.TaskId = initiatingTask.Id;
+                        await _workflow.Messaging.DispatchTaskStatusEventAsync(taskCommandTypeName, message);
+                    }
+                }
+            }
+
         }
 
     }
