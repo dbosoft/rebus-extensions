@@ -69,7 +69,7 @@ public class WorkflowTests : RebusTestBase
             activator.Register(() => new MultiStepSaga(wf));
 
             stepOneHandler = new StepOneCommandHandler(tasks);
-            stepTwoHandler = new StepTwoCommandHandler(tasks, false);
+            stepTwoHandler = new StepTwoCommandHandler(tasks);
             activator.Register(() => stepOneHandler);
             activator.Register(() => stepTwoHandler);
         });
@@ -118,7 +118,7 @@ public class WorkflowTests : RebusTestBase
                 wf.Messaging));
 
             stepOneHandler = new StepOneCommandHandler(tasks);
-            stepTwoHandler = new StepTwoCommandHandler(tasks, true);
+            stepTwoHandler = new StepTwoCommandHandler(tasks){Throws = true};
             activator.Register(() => stepOneHandler);
             activator.Register(() => stepTwoHandler);
         });
@@ -189,7 +189,7 @@ public class WorkflowTests : RebusTestBase
         {
             activator.Register(() => new IncomingTaskMessageHandler<TestCommand>(bus,
                 NullLogger<IncomingTaskMessageHandler<TestCommand>>.Instance, new DefaultMessageEnricher()));
-            activator.Register(() => new TestCommandHandlerWithError(throws, tasks));
+            activator.Register(() => new TestCommandHandlerWithError(tasks){Throws = true});
             activator.Register(() => new EmptyOperationStatusEventHandler());
             activator.Register(() => new EmptyOperationTaskStatusEventHandler<TestCommand>());
             activator.Register(() =>
