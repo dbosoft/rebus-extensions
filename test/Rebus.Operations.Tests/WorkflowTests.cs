@@ -202,7 +202,15 @@ public class WorkflowTests : RebusTestBase
         TestTaskManager.Reset();
         
         await setup.OperationDispatcher.StartNew<TestCommand>();
-        await Task.Delay(throws ? 2000: 1000);
+        var timeout = new CancellationTokenSource(10000);
+        while (
+                !timeout.Token.IsCancellationRequested &&
+                (TestOperationManager.Operations.First().Value.Status == OperationStatus.Running ||
+                 TestOperationManager.Operations.First().Value.Status == OperationStatus.Queued))
+            // ReSharper disable once MethodSupportsCancellation
+        {
+            await Task.Delay(1000);
+        }
         Assert.Equal(OperationStatus.Failed ,TestOperationManager.Operations.First().Value.Status);
 
     }
