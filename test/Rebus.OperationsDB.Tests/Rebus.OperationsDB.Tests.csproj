@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\Rebus.Operations\Rebus.Operations.SimpleInjector\Rebus.Operations.SimpleInjector.csproj" />
+      <ProjectReference Include="..\..\src\Rebus.SimpleInjector\Rebus.SimpleInjector.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Ardalis.Specification.EntityFrameworkCore" Version="6.1.0" />
+      <PackageReference Include="MartinCostello.Logging.XUnit" Version="0.3.0" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.28" />
+      <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
+      <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
+      <PackageReference Include="Rebus.Microsoft.Extensions.Logging" Version="3.0.0" />
+      <PackageReference Include="SimpleInjector.Integration.GenericHost" Version="5.4.0" />
+    </ItemGroup>
+
+</Project>
