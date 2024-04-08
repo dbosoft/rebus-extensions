@@ -27,6 +27,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rebus.SimpleInjector", "src
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rebus.SimpleInjector.Tests", "test\Rebus.SimpleInjector.Tests\Rebus.SimpleInjector.Tests.csproj", "{539BED78-F196-4FA2-9E48-2185FE82444E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rebus.OperationsDB.Tests", "test\Rebus.OperationsDB.Tests\Rebus.OperationsDB.Tests.csproj", "{73DED33B-5E78-4843-B3B6-2C9BB0766E42}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -81,6 +83,10 @@ Global
 		{539BED78-F196-4FA2-9E48-2185FE82444E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{539BED78-F196-4FA2-9E48-2185FE82444E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{539BED78-F196-4FA2-9E48-2185FE82444E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73DED33B-5E78-4843-B3B6-2C9BB0766E42}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73DED33B-5E78-4843-B3B6-2C9BB0766E42}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73DED33B-5E78-4843-B3B6-2C9BB0766E42}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73DED33B-5E78-4843-B3B6-2C9BB0766E42}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
