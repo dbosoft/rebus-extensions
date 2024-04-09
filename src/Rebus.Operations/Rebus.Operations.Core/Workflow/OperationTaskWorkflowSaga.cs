@@ -70,24 +70,32 @@ namespace Dbosoft.Rebus.Operations.Workflow
                 WorkflowEngine.WorkflowOptions.JsonSerializerOptions));
         }
 
-        protected Task FailOrRun<T>(OperationTaskStatusEvent<T> message, Func<Task> completedFunc)
+        protected async Task FailOrRun<T>(OperationTaskStatusEvent<T> message, Func<Task> completedFunc)
             where T : class, new()
         {
+            if (message.InitiatingTaskId != Data.SagaTaskId)
+                return;
+            
             if (message.OperationFailed)
-                return Fail(message.GetMessage(WorkflowEngine.WorkflowOptions.JsonSerializerOptions));
+                await Fail(message.GetMessage(WorkflowEngine.WorkflowOptions.JsonSerializerOptions));
 
-            return completedFunc();
+            await completedFunc();
         }
 
-        protected Task FailOrRun<T, TOpMessage>(OperationTaskStatusEvent<T> message, Func<TOpMessage, Task> completedFunc)
+        protected async Task FailOrRun<T, TOpMessage>(OperationTaskStatusEvent<T> message, Func<TOpMessage, Task> completedFunc)
             where T : class, new()
             where TOpMessage : class
         {
-            return message.OperationFailed 
-                ? Fail(message.GetMessage(WorkflowEngine.WorkflowOptions.JsonSerializerOptions)) 
-                : completedFunc(message.GetMessage(WorkflowEngine.WorkflowOptions.JsonSerializerOptions) as TOpMessage 
-                                ?? throw new InvalidOperationException(
-                                    $"Message {typeof(T)} has not returned a result of type {typeof(TOpMessage)}."));
+            if (message.InitiatingTaskId != Data.SagaTaskId)
+                return;
+
+            if (message.OperationFailed)
+                await Fail(message.GetMessage(WorkflowEngine.WorkflowOptions.JsonSerializerOptions));
+            else
+                await completedFunc(
+                    message.GetMessage(WorkflowEngine.WorkflowOptions.JsonSerializerOptions) as TOpMessage
+                    ?? throw new InvalidOperationException(
+                        $"Message {typeof(T)} has not returned a result of type {typeof(TOpMessage)}."));
         }
 
 

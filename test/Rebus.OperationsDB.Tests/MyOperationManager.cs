@@ -7,10 +7,15 @@ namespace Dbosoft.Rebus.OperationsDB.Tests;
 public class MyOperationManager : IOperationManager
 {
     private readonly IStateStoreRepository<OperationModel> _repository;
+    private readonly IStateStoreRepository<OperationLogEntry> _logRepository;
+    private readonly IStateStoreRepository<OperationTaskModel> _taskRepository;
 
-    public MyOperationManager(IStateStoreRepository<OperationModel> repository)
+    public MyOperationManager(IStateStoreRepository<OperationModel> repository, 
+        IStateStoreRepository<OperationLogEntry> logRepository, IStateStoreRepository<OperationTaskModel> taskRepository)
     {
         _repository = repository;
+        _logRepository = logRepository;
+        _taskRepository = taskRepository;
     }
 
     public async ValueTask<IOperation?> GetByIdAsync(Guid operationId)
@@ -29,7 +34,7 @@ public class MyOperationManager : IOperationManager
             Id = operationId,
             Created = DateTimeOffset.Now,
             LastUpdate = DateTimeOffset.Now,
-            Status = OperationStatus.Queued
+            Status = OperationStatus.Queued,
         };
 
         await _repository.AddAsync(model);
@@ -45,13 +50,41 @@ public class MyOperationManager : IOperationManager
             return false;
         
         model.Status = newStatus;
-
+        model.LastUpdate = DateTimeOffset.Now;
         return true;
     }
 
-    public ValueTask AddProgressAsync(Guid progressId, DateTimeOffset timestamp, IOperation operation, IOperationTask task,
+    public async ValueTask AddProgressAsync(Guid progressId, DateTimeOffset timestamp, IOperation operation, IOperationTask task,
         object? data, IDictionary<string, string>? messageHeaders)
     {
-        return ValueTask.CompletedTask;
+        var message = "";
+        var progress = 0;
+
+        if (data is string msgString)
+            message = msgString;
+        
+        if (data is int progressMsg)
+            progress = progressMsg;
+
+        var taskEntry = await _taskRepository.GetByIdAsync(task.Id);
+        if (taskEntry != null)
+        {
+            taskEntry.Progress = progress;
+            taskEntry.LastUpdate = DateTimeOffset.Now;
+        }
+
+        var opLogEntry =
+            new OperationLogEntry
+            {
+                Id = progressId,
+                OperationId = operation.Id,
+                TaskId = task.Id,
+                Message = message,
+                Timestamp = timestamp
+            };
+
+        await _logRepository.AddAsync(opLogEntry).ConfigureAwait(false);
+
+
     }
 }

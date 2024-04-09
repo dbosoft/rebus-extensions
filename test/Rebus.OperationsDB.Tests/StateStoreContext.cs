@@ -13,6 +13,7 @@ public class StateStoreContext : DbContext
 
     public DbSet<OperationModel>? Operations { get; set; }
     public DbSet<OperationTaskModel>? OperationTasks { get; set; }
+    public DbSet<OperationLogEntry>? OperationLogs{ get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -30,12 +31,16 @@ public class StateStoreContext : DbContext
             .WithOne(x => x.Operation)
             .HasForeignKey(x => x.OperationId)
             .OnDelete(DeleteBehavior.Cascade);
-
+        
+        modelBuilder.Entity<OperationModel>()
+            .Property(x => x.LastUpdate)
+            .IsConcurrencyToken();
+        
         modelBuilder.Entity<OperationTaskModel>().HasKey(x => x.Id);
         modelBuilder.Entity<OperationTaskModel>().Property(x => x.Id).IsRequired().ValueGeneratedNever();
 
-        // modelBuilder.Entity<OperationTaskModel>()
-        //     .Property(x => x.Timestamp)
-        //     .IsRowVersion();
+        modelBuilder.Entity<OperationTaskModel>()
+             .Property(x => x.LastUpdate)
+             .IsConcurrencyToken();
     }
 }

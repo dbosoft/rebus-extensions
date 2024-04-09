@@ -45,7 +45,7 @@ public class MyOperationTaskManager : IOperationTaskManager
             return false;
         
         model.Status = newStatus;
-
+        model.LastUpdate = DateTimeOffset.Now;
         return true;
     }
 }
