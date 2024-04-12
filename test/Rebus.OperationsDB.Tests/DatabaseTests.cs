@@ -46,7 +46,8 @@ public class DatabaseTests : IClassFixture<DatabaseTests.DeleteDb>
         var workflowOptions = new WorkflowOptions
         {
             DispatchMode = WorkflowEventDispatchMode.Publish,
-            OperationsDestination = "workflow"
+            OperationsDestination = "workflow",
+            DeferCompletion = TimeSpan.FromMinutes(1)
         };
         
         var container = new Container();
@@ -84,6 +85,7 @@ public class DatabaseTests : IClassFixture<DatabaseTests.DeleteDb>
             .Logging(x=>x.MicrosoftExtensionsLogging(new XUnitLogger("rebus", _outputHelper, 
                 new XUnitLoggerOptions())))
             .Subscriptions(c => c.StoreInMemory())
+            .Timeouts(x=>x.StoreInMemory())
             .Sagas(s =>
             {
                 s.StoreInMemory();
@@ -228,7 +230,7 @@ public class DatabaseTests : IClassFixture<DatabaseTests.DeleteDb>
             await using var startContext = sp.GetRequiredService<StateStoreContext>();
             var dispatcher = sp.GetRequiredService<IOperationDispatcher>();
 
-            foreach (var _ in Enumerable.Range(0, commands))
+            foreach(var _ in Enumerable.Range(0, commands))
             {
                 using var ta = new TransactionScope(TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
                 ta.EnlistRebus();

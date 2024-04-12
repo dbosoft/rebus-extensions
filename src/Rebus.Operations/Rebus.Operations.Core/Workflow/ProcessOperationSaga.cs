@@ -19,7 +19,8 @@ namespace Dbosoft.Rebus.Operations.Workflow
         IHandleMessages<CreateNewOperationTaskCommand>,
         IHandleMessages<OperationTaskAcceptedEvent>,
         IHandleMessages<OperationTaskStatusEvent>,
-        IHandleMessages<OperationTimeoutEvent>
+        IHandleMessages<OperationTimeoutEvent>,
+        IHandleMessages<OperationCompleteEvent>
     {
         private readonly IWorkflow _workflow;
         private readonly ILogger _log;
@@ -46,11 +47,18 @@ namespace Dbosoft.Rebus.Operations.Workflow
             return Task.CompletedTask;
         }
 
+        public Task Handle(OperationCompleteEvent? message)
+        {
+            MarkAsComplete();
+            return Task.CompletedTask;
+        }
+
         protected override void CorrelateMessages(ICorrelationConfig<OperationSagaData> config)
         {
             config.Correlate<CreateOperationCommand>(m => m.TaskMessage?.OperationId, d => d.OperationId);
             config.Correlate<CreateNewOperationTaskCommand>(m => m.OperationId, d => d.OperationId);
             config.Correlate<OperationTimeoutEvent>(m => m.OperationId, d => d.OperationId);
+            config.Correlate<OperationCompleteEvent>(m => m.OperationId, d => d.OperationId);
             config.Correlate<OperationTaskAcceptedEvent>(m => m.OperationId, d => d.OperationId);
             config.Correlate<OperationTaskStatusEvent>(m => m.OperationId, d => d.OperationId);
         }
@@ -83,7 +91,7 @@ namespace Dbosoft.Rebus.Operations.Workflow
             {
                 _log.LogWarning("Operation Workflow {operationId}: Operation not found - cancelling workflow",
                     message.OperationId);
-                MarkAsComplete();
+                Complete();
                 return;
             }
 
@@ -146,6 +154,20 @@ namespace Dbosoft.Rebus.Operations.Workflow
                 }
             }
 
+        }
+
+        private void Complete()
+        {
+            if (_workflow.WorkflowOptions.DeferCompletion == TimeSpan.Zero)
+            {
+                MarkAsComplete();
+                return;
+            }
+
+            _workflow.Messaging.SendDeferredMessage(new OperationCompleteEvent
+            {
+                OperationId = Data.OperationId
+            }, _workflow.WorkflowOptions.DeferCompletion);
         }
 
         public async Task Handle(OperationTaskStatusEvent message)
@@ -216,7 +238,7 @@ namespace Dbosoft.Rebus.Operations.Workflow
                 _log.LogDebug("Operation Workflow {operationId}: Completing workflow",
                     message.OperationId);
 
-                MarkAsComplete();
+                Complete();
             }
             else
             {

@@ -6,4 +6,9 @@ namespace Dbosoft.Rebus.Operations.Events
     {
         public Guid OperationId { get; set; }
     }
+
+    public class OperationCompleteEvent
+    {
+        public Guid OperationId { get; set; }
+    }
 }
