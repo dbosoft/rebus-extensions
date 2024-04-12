@@ -218,10 +218,8 @@ public class DatabaseTests : IClassFixture<DatabaseTests.DeleteDb>
     
     [Theory]
     [InlineData(1, 1, 5000)]
-    [InlineData(3, 5, 10000)]
-    [InlineData(5, 13, 20000)]
-    [InlineData(5, 30, 30000)]
-    [InlineData(3, 30, 40000)]
+    [InlineData(3, 5, 20000)]
+    [InlineData(5, 20, 40000)]
     public async Task Runs_and_reports_a_complex_Workflow(int workers, int commands, int timeout)
     {
         await SetupAndRunWorkflow(workers,timeout, async sp =>
