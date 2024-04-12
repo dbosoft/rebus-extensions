@@ -131,29 +131,40 @@ namespace Dbosoft.Rebus.Operations.Workflow
             var opOldStatus = op.Status;
             if (await _workflow.Operations.TryChangeStatusAsync(op, OperationStatus.Running,
                     message.Created,
-                    null, 
+                    null,
                     MessageContext.Current.Headers).ConfigureAwait(false))
             {
                 _log.LogDebug("Operation Workflow {operationId}: Status changed: {oldStatus} -> {newStatus}",
                     message.OperationId, opOldStatus, op.Status);
 
-                
+
                 await _workflow.Messaging.DispatchOperationStatusEventAsync(new OperationStatusEvent
                 {
                     OperationId = op.Id,
                     NewStatus = OperationStatus.Running
                 }).ConfigureAwait(false);
+            }
+            else
+            {
+                _log.LogDebug("Operation Workflow {operationId}: Status NOT changed to {newStatus}, keeping {oldStatus}. Message: {messageType}",
+                    message.OperationId, op.Status, opOldStatus, nameof(OperationTaskAcceptedEvent));
 
+            }
 
-                var taskOldStatus = task.Status;
-                if (await _workflow.Tasks.TryChangeStatusAsync(task, OperationTaskStatus.Running,
-                        message.Created,
-                        message.AdditionalData).ConfigureAwait(false))
-                {
-                    _log.LogDebug("Operation Workflow {operationId}, Task {taskId}: Status changed: {oldStatus} -> {newStatus}",
-                        message.OperationId, message.TaskId, taskOldStatus, task.Status);
+            var taskOldStatus = task.Status;
+            if (await _workflow.Tasks.TryChangeStatusAsync(task, OperationTaskStatus.Running,
+                    message.Created,
+                    message.AdditionalData).ConfigureAwait(false))
+            {
+                _log.LogDebug("Operation Workflow {operationId}, Task {taskId}: Status changed: {oldStatus} -> {newStatus}",
+                    message.OperationId, message.TaskId, taskOldStatus, task.Status);
 
-                }
+            }
+            else
+            {
+                _log.LogDebug("Operation Workflow {operationId}, Task {taskId}: Status NOT changed to {newStatus}, keeping {oldStatus}. Message: {messageType}",
+                    message.OperationId, message.TaskId, op.Status, opOldStatus, nameof(OperationTaskAcceptedEvent));
+
             }
 
         }
