@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using Rebus.Handlers;
 using Rebus.Logging;
+using Rebus.Messages;
 using Rebus.Pipeline;
 
 namespace Dbosoft.Rebus.Operations.Workflow
@@ -40,7 +41,7 @@ namespace Dbosoft.Rebus.Operations.Workflow
                 if (task.Status == OperationTaskStatus.Queued)
                 {
                     var deferCount = 0;
-                    if (MessageContext.Current.Headers.TryGetValue("rbs2-defer-count",
+                    if (MessageContext.Current.Headers.TryGetValue(Headers.DeferCount,
                             out var deferCountString))
                     {
                         deferCount = int.Parse(deferCountString);
@@ -50,7 +51,7 @@ namespace Dbosoft.Rebus.Operations.Workflow
                     {
                         _logger.LogDebug("Operation Workflow {operationId}, Task {taskId}: Progress event received for queued task, deferred {deferCount} times, deferring for {deferTime} ms",
                             message.OperationId, message.TaskId, deferCount, 100 * (deferCount + 1));
-                        await _workflow.Messaging.SendDeferredMessage(message, TimeSpan.FromMilliseconds(100 * (deferCount + 1))).ConfigureAwait(false);
+                        await _workflow.Messaging.DeferredCurrentMessage(TimeSpan.FromMilliseconds(100 * (deferCount + 1))).ConfigureAwait(false);
                         return;
                     }
                 }

@@ -16,5 +16,6 @@ public interface IOperationMessaging
     IOperationTaskDispatcher TaskDispatcher { get; }
 
     Task SendDeferredMessage(object message, TimeSpan defer);
+    Task DeferredCurrentMessage(TimeSpan defer);
 
 }

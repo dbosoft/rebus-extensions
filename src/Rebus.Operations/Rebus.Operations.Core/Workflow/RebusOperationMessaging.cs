@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Dbosoft.Rebus.Operations.Commands;
 using Dbosoft.Rebus.Operations.Events;
 using Rebus.Bus;
+using Rebus.Messages;
 using Rebus.Pipeline;
 
 namespace Dbosoft.Rebus.Operations.Workflow;
@@ -89,5 +90,10 @@ public class RebusOperationMessaging : IOperationMessaging
     public Task SendDeferredMessage(object message, TimeSpan defer)
     {
         return _bus.DeferLocal(defer, message);
+    }
+
+    public Task DeferredCurrentMessage(TimeSpan defer)
+    {
+        return _bus.Advanced.TransportMessage.Defer(defer);
     }
 }
