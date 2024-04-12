@@ -11,6 +11,6 @@ public interface IOperationTask
     public Guid InitiatingTaskId { get; }
 
 
-    OperationTaskStatus Status { get; }
+    OperationTaskStatus Status { get;  }
 
 }

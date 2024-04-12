@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Dbosoft.Rebus.Operations.Commands;
 using Dbosoft.Rebus.Operations.Events;
 using Rebus.Bus;
+using Rebus.Messages;
 using Rebus.Pipeline;
 
 namespace Dbosoft.Rebus.Operations.Workflow;
@@ -49,7 +50,8 @@ public class RebusOperationMessaging : IOperationMessaging
         var messageType = command.GetType();
         var outboundMessage = Activator.CreateInstance(
             typeof(OperationTaskSystemMessage<>).MakeGenericType(messageType),
-            command, task.OperationId, task.InitiatingTaskId, task.Id);
+            command, task.OperationId, task.InitiatingTaskId, task.Id, 
+            DateTimeOffset.UtcNow);
 
         var taskHeaders = _messageEnricher.EnrichHeadersOfOutgoingSystemMessage(command,
             JoinHeaders(additionalHeaders, MessageContext.Current.Headers));
@@ -86,6 +88,13 @@ public class RebusOperationMessaging : IOperationMessaging
 
     public IOperationDispatcher OperationDispatcher { get; }
     public IOperationTaskDispatcher TaskDispatcher { get; }
-    
-    
+    public Task SendDeferredMessage(object message, TimeSpan defer)
+    {
+        return _bus.DeferLocal(defer, message);
+    }
+
+    public Task DeferredCurrentMessage(TimeSpan defer)
+    {
+        return _bus.Advanced.TransportMessage.Defer(defer);
+    }
 }

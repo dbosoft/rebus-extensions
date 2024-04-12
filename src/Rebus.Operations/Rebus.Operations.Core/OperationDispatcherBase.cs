@@ -43,15 +43,18 @@ namespace Dbosoft.Rebus.Operations
             return StartOperation(commandType,additionalData, additionalHeaders);
         }
 
-        protected abstract ValueTask<(IOperation, object)> CreateOperation(object command, object? additionalData, IDictionary<string,string>? additionalHeaders);
+        protected abstract ValueTask<(IOperation, object)> CreateOperation(object command, DateTimeOffset created, object? additionalData, IDictionary<string,string>? additionalHeaders);
 
         protected async ValueTask<IOperation?> StartOperation(object command, object? additionalData, IDictionary<string,string>? additionalHeaders = null)
         {
+            
             if (command == null)
                 throw new ArgumentNullException(nameof(command));
 
-            var(operation, taskCommand) = await CreateOperation(command, additionalData, additionalHeaders);
-            
+            var created = DateTimeOffset.Now;
+            var (operation, taskCommand) =
+                await CreateOperation(command, created, additionalData, additionalHeaders).ConfigureAwait(false);
+
             var commandJson = JsonSerializer.Serialize(taskCommand, _options.JsonSerializerOptions);
 
             var taskMessage = new CreateNewOperationTaskCommand(
@@ -59,18 +62,19 @@ namespace Dbosoft.Rebus.Operations
                 commandJson,
                 operation.Id,
                 operation.Id,
-                Guid.NewGuid());
+                Guid.NewGuid(),
+                created);
 
             var message = new CreateOperationCommand { TaskMessage = taskMessage };
             await (string.IsNullOrWhiteSpace(_options.OperationsDestination)
-                ? _bus.Send(message, additionalHeaders)
-                : _bus.Advanced.Routing.Send(_options.OperationsDestination, message, additionalHeaders));
+                    ? _bus.Send(message, additionalHeaders)
+                    : _bus.Advanced.Routing.Send(_options.OperationsDestination, message, additionalHeaders))
+                .ConfigureAwait(false);
 
             _logger.LogDebug("Send new command of type {commandType}. Id: {operationId}",
                 taskCommand.GetType().Name, operation.Id);
 
             return operation;
-
         }
 
     }

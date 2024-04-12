@@ -43,7 +43,7 @@ namespace Dbosoft.Rebus.Operations.Workflow
                 OperationTaskStatusEvent.Failed(
                     failedMessage.Message.OperationId, failedMessage.Message.InitiatingTaskId,
                     failedTaskId, new ErrorData() { ErrorMessage = failedMessage.ErrorDescription },
-                    _workflowOptions.JsonSerializerOptions));
+                    _workflowOptions.JsonSerializerOptions)).ConfigureAwait(false);
 
 
         }

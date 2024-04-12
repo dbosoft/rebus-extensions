@@ -9,5 +9,6 @@ namespace Dbosoft.Rebus.Operations.Events
         public Guid TaskId { get; set; }
 
         public object? AdditionalData { get; set; }
+        public DateTimeOffset Created { get; set; }
     }
 }

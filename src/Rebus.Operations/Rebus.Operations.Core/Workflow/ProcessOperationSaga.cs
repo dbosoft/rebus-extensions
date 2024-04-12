@@ -1,6 +1,4 @@
-﻿#nullable enable
-
-using System;
+﻿using System;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Dbosoft.Rebus.Operations.Commands;
@@ -8,6 +6,7 @@ using Dbosoft.Rebus.Operations.Events;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using Rebus.Handlers;
+using Rebus.Messages;
 using Rebus.Pipeline;
 using Rebus.Sagas;
 
@@ -19,7 +18,8 @@ namespace Dbosoft.Rebus.Operations.Workflow
         IHandleMessages<CreateNewOperationTaskCommand>,
         IHandleMessages<OperationTaskAcceptedEvent>,
         IHandleMessages<OperationTaskStatusEvent>,
-        IHandleMessages<OperationTimeoutEvent>
+        IHandleMessages<OperationTimeoutEvent>,
+        IHandleMessages<OperationCompleteEvent>
     {
         private readonly IWorkflow _workflow;
         private readonly ILogger _log;
@@ -46,11 +46,21 @@ namespace Dbosoft.Rebus.Operations.Workflow
             return Task.CompletedTask;
         }
 
+        public Task Handle(OperationCompleteEvent? message)
+        {
+            _log.LogDebug("Operation Workflow {operationId}: Completing workflow",
+                Data.OperationId);
+
+            MarkAsComplete();
+            return Task.CompletedTask;
+        }
+
         protected override void CorrelateMessages(ICorrelationConfig<OperationSagaData> config)
         {
             config.Correlate<CreateOperationCommand>(m => m.TaskMessage?.OperationId, d => d.OperationId);
             config.Correlate<CreateNewOperationTaskCommand>(m => m.OperationId, d => d.OperationId);
             config.Correlate<OperationTimeoutEvent>(m => m.OperationId, d => d.OperationId);
+            config.Correlate<OperationCompleteEvent>(m => m.OperationId, d => d.OperationId);
             config.Correlate<OperationTaskAcceptedEvent>(m => m.OperationId, d => d.OperationId);
             config.Correlate<OperationTaskStatusEvent>(m => m.OperationId, d => d.OperationId);
         }
@@ -83,12 +93,12 @@ namespace Dbosoft.Rebus.Operations.Workflow
             {
                 _log.LogWarning("Operation Workflow {operationId}: Operation not found - cancelling workflow",
                     message.OperationId);
-                MarkAsComplete();
+                Complete();
                 return;
             }
 
             var task = await _workflow.Tasks
-                .GetOrCreateAsync(op, command, message.TaskId, message.InitiatingTaskId)
+                .GetOrCreateAsync(op, command, message.Created, message.TaskId, message.InitiatingTaskId)
                 .ConfigureAwait(false);
 
 
@@ -96,8 +106,8 @@ namespace Dbosoft.Rebus.Operations.Workflow
             if (messageType == null)
                 throw new InvalidOperationException($"unknown command type '{message.CommandType}'");
 
-            Data.Tasks.Add(message.TaskId, messageType.AssemblyQualifiedName!);
-            await _workflow.Messaging.DispatchTaskMessage(command,task);
+            Data.Tasks.TryAdd(message.TaskId, messageType.AssemblyQualifiedName!);
+            await _workflow.Messaging.DispatchTaskMessage(command,task).ConfigureAwait(false);
         }
 
 
@@ -119,30 +129,71 @@ namespace Dbosoft.Rebus.Operations.Workflow
             }
 
             var opOldStatus = op.Status;
-            if (await _workflow.Operations.TryChangeStatusAsync(op, OperationStatus.Running, null, 
-                    MessageContext.Current.Headers))
+            if (await _workflow.Operations.TryChangeStatusAsync(op, OperationStatus.Running,
+                    message.Created,
+                    null,
+                    MessageContext.Current.Headers).ConfigureAwait(false))
             {
-                _log.LogDebug("Operation Workflow {operationId}: Status changed: {oldStatus} -> {newStatus}",
-                    message.OperationId, opOldStatus, op.Status);
 
-                
+                if(opOldStatus != OperationStatus.Running)
+                    _log.LogDebug("Operation Workflow {operationId}: Operation status change: {oldStatus} -> {newStatus}",
+                                               message.OperationId, opOldStatus, OperationStatus.Running);
+                else
+                    _log.LogDebug("Operation Workflow {operationId}: Operation status already {newStatus}, only updated state",
+                                               message.OperationId, OperationStatus.Running);
+
                 await _workflow.Messaging.DispatchOperationStatusEventAsync(new OperationStatusEvent
                 {
                     OperationId = op.Id,
                     NewStatus = OperationStatus.Running
-                });
+                }).ConfigureAwait(false);
+            }
+            else
+            {
+                _log.LogDebug("Operation Workflow {operationId}: Status NOT changed to {newStatus}, keeping {oldStatus}. Message: {messageType}",
+                    message.OperationId, OperationStatus.Running, opOldStatus, nameof(OperationTaskAcceptedEvent));
 
-
-                var taskOldStatus = task.Status;
-                if (await _workflow.Tasks.TryChangeStatusAsync(task, OperationTaskStatus.Running,
-                        message.AdditionalData))
-                {
-                    _log.LogDebug("Operation Workflow {operationId}, Task {taskId}: Status changed: {oldStatus} -> {newStatus}",
-                        message.OperationId, message.TaskId, taskOldStatus, task.Status);
-
-                }
             }
 
+            var taskOldStatus = task.Status;
+            if (await _workflow.Tasks.TryChangeStatusAsync(task, OperationTaskStatus.Running,
+                    message.Created,
+                    message.AdditionalData).ConfigureAwait(false))
+            {
+                if(taskOldStatus != OperationTaskStatus.Running)
+                    _log.LogDebug("Operation Workflow {operationId}, Task {taskId}: Task accepted: {oldStatus} -> {newStatus}",
+                                               message.OperationId, message.TaskId, taskOldStatus, OperationTaskStatus.Running);
+                else
+                    _log.LogDebug("Operation Workflow {operationId}, Task {taskId}: Task status already {newStatus}, only updated state",
+                                                                      message.OperationId, message.TaskId, OperationTaskStatus.Running);
+            }
+            else
+            {
+                _log.LogDebug("Operation Workflow {operationId}, Task {taskId}: Status NOT changed to {newStatus}, keeping {oldStatus}. Message: {messageType}",
+                    message.OperationId, message.TaskId, OperationTaskStatus.Running, opOldStatus, nameof(OperationTaskAcceptedEvent));
+
+            }
+
+        }
+
+        private void Complete()
+        {
+            if (_workflow.WorkflowOptions.DeferCompletion == TimeSpan.Zero)
+            {
+                _log.LogDebug("Operation Workflow {operationId}: Completing workflow",
+                    Data.OperationId);
+
+                MarkAsComplete();
+                return;
+            }
+
+            _log.LogDebug("Operation Workflow {operationId}: workflow can be completed, completion deferred for {deferred} seconds",
+                Data.OperationId, _workflow.WorkflowOptions.DeferCompletion.TotalSeconds);
+
+            _workflow.Messaging.SendDeferredMessage(new OperationCompleteEvent
+            {
+                OperationId = Data.OperationId
+            }, _workflow.WorkflowOptions.DeferCompletion);
         }
 
         public async Task Handle(OperationTaskStatusEvent message)
@@ -162,6 +213,24 @@ namespace Dbosoft.Rebus.Operations.Workflow
                 return;
             }
 
+            if (task.Status == OperationTaskStatus.Queued)
+            {
+                var deferCount = 0;
+                if (MessageContext.Current.Headers.TryGetValue(Headers.DeferCount,
+                        out var deferCountString))
+                {
+                    deferCount = int.Parse(deferCountString); 
+                }
+
+                if (deferCount < 5)
+                {
+                    _log.LogDebug("Operation Workflow {operationId}, Task {taskId}: Status change event received for queued task, deferred {deferCount} times, deferring for {deferTime} ms",
+                        message.OperationId, message.TaskId, deferCount, 100*(deferCount+1));
+                    await _workflow.Messaging.DeferredCurrentMessage(TimeSpan.FromMilliseconds(100*(deferCount+1))).ConfigureAwait(false);
+                    return;
+                }
+            }
+
             if (task.Status is OperationTaskStatus.Queued or OperationTaskStatus.Running)
             {
                 if(!Data.Tasks.ContainsKey(message.TaskId))
@@ -170,20 +239,24 @@ namespace Dbosoft.Rebus.Operations.Workflow
                 else
                 {
                     var taskCommandTypeName = Data.Tasks[message.TaskId];
-                    await _workflow.Messaging.DispatchTaskStatusEventAsync(taskCommandTypeName, message);
+                    await _workflow.Messaging.DispatchTaskStatusEventAsync(taskCommandTypeName, message).ConfigureAwait(false);
                 }
             }
 
             var taskOldStatus = task.Status;
             if(await _workflow.Tasks.TryChangeStatusAsync(task,
-                message.OperationFailed
-                    ? OperationTaskStatus.Failed
-                    : OperationTaskStatus.Completed
-                , message.GetMessage(_workflow.WorkflowOptions.JsonSerializerOptions)))
+                   message.OperationFailed
+                       ? OperationTaskStatus.Failed
+                       : OperationTaskStatus.Completed
+                   ,message.Created, 
+                   message.GetMessage(_workflow.WorkflowOptions.JsonSerializerOptions)).ConfigureAwait(false))
 
-                _log.LogDebug("Operation Workflow {operationId}, Task {taskId}: Status changed: {oldStatus} -> {newStatus}",
-                    message.OperationId, message.TaskId, taskOldStatus, task.Status);
-
+                if(taskOldStatus != task.Status)
+                    _log.LogDebug("Operation Workflow {operationId}, Task {taskId}: Task status changed: {oldStatus} -> {newStatus}",
+                                               message.OperationId, message.TaskId, taskOldStatus, task.Status);
+                else
+                    _log.LogDebug("Operation Workflow {operationId}, Task {taskId}: Task status already {newStatus}, only updated state",
+                                               message.OperationId, message.TaskId, task.Status);
 
 
             if (message.TaskId == Data.PrimaryTaskId)
@@ -198,19 +271,18 @@ namespace Dbosoft.Rebus.Operations.Workflow
 
 
                 if (await _workflow.Operations.TryChangeStatusAsync(op,
-                        newStatus, message.GetMessage(_workflow.WorkflowOptions.JsonSerializerOptions), MessageContext.Current.Headers))
+                        newStatus,
+                        message.Created,
+                        message.GetMessage(_workflow.WorkflowOptions.JsonSerializerOptions), MessageContext.Current.Headers).ConfigureAwait(false))
                 {
                     await _workflow.Messaging.DispatchOperationStatusEventAsync(new OperationStatusEvent
                     {
                         OperationId = op.Id,
                         NewStatus = newStatus
-                    });
+                    }).ConfigureAwait(false);
                 }
 
-                _log.LogDebug("Operation Workflow {operationId}: Completing workflow",
-                    message.OperationId);
-
-                MarkAsComplete();
+                Complete();
             }
             else
             {
@@ -225,7 +297,7 @@ namespace Dbosoft.Rebus.Operations.Workflow
                     {
                         message.InitiatingTaskId = initiatingTask.InitiatingTaskId;
                         message.TaskId = initiatingTask.Id;
-                        await _workflow.Messaging.DispatchTaskStatusEventAsync(taskCommandTypeName, message);
+                        await _workflow.Messaging.DispatchTaskStatusEventAsync(taskCommandTypeName, message).ConfigureAwait(false);
                     }
                 }
             }

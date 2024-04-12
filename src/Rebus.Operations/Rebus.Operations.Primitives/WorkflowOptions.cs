@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json;
 
 namespace Dbosoft.Rebus.Operations;
@@ -14,4 +15,6 @@ public class WorkflowOptions
     
     public string? OperationsDestination { get; set; }
     public JsonSerializerOptions JsonSerializerOptions { get; set; }
+
+    public TimeSpan DeferCompletion { get; set; } = TimeSpan.Zero;
 }

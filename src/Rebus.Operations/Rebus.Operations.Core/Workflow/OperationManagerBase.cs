@@ -10,7 +10,8 @@ public abstract class OperationManagerBase : IOperationManager
 
     public abstract ValueTask<IOperation?> GetByIdAsync(Guid operationId);
 
-    public abstract ValueTask<IOperation> GetOrCreateAsync(Guid operationId, object command, 
+    public abstract ValueTask<IOperation> GetOrCreateAsync(Guid operationId, object command,
+        DateTimeOffset timestamp,
         object? additionalData,IDictionary<string,string>? additionalHeaders);
 
 
@@ -18,7 +19,9 @@ public abstract class OperationManagerBase : IOperationManager
         IOperationTask task,
         object? data, IDictionary<string,string>? messageHeaders);
 
-    public abstract ValueTask<bool> TryChangeStatusAsync(IOperation operation, OperationStatus newStatus,
+    public abstract ValueTask<bool> TryChangeStatusAsync(IOperation operation, 
+        OperationStatus newStatus,
+        DateTimeOffset timestamp,
         object? additionalData, IDictionary<string,string>? messageHeaders);
 
 

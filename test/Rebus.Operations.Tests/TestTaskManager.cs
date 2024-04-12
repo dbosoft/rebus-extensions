@@ -19,7 +19,8 @@ public class TestTaskManager : OperationTaskManagerBase
 
     }
 
-    public override ValueTask<IOperationTask> GetOrCreateAsync(IOperation operation, object command, Guid taskId, Guid parentTaskId)
+    public override ValueTask<IOperationTask> GetOrCreateAsync(IOperation operation, 
+        object command, DateTimeOffset created, Guid taskId, Guid parentTaskId)
     {
         if (Tasks.ContainsKey(taskId))
             return GetByIdAsync(taskId)!;
@@ -35,7 +36,7 @@ public class TestTaskManager : OperationTaskManagerBase
         return new ValueTask<IOperationTask>(task);
     }
 
-    public override ValueTask<bool> TryChangeStatusAsync(IOperationTask task, OperationTaskStatus newStatus, object? additionalData)
+    public override ValueTask<bool> TryChangeStatusAsync(IOperationTask task, OperationTaskStatus newStatus, DateTimeOffset created, object? additionalData)
     {
         if (!Tasks.ContainsKey(task.Id))
             return new ValueTask<bool>(false);

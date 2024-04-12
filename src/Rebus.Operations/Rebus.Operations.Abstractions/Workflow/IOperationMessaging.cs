@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dbosoft.Rebus.Operations.Events;
 
@@ -13,4 +14,8 @@ public interface IOperationMessaging
 
     IOperationDispatcher OperationDispatcher { get; }
     IOperationTaskDispatcher TaskDispatcher { get; }
+
+    Task SendDeferredMessage(object message, TimeSpan defer);
+    Task DeferredCurrentMessage(TimeSpan defer);
+
 }
