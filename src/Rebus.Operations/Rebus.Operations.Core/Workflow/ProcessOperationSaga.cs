@@ -202,7 +202,7 @@ namespace Dbosoft.Rebus.Operations.Workflow
                 if (MessageContext.Current.Headers.TryGetValue("rbs2-defer-count",
                         out var deferCountString))
                 {
-                    deferCount = int.Parse(deferCountString);
+                    deferCount = int.Parse(deferCountString); 
                 }
 
                 if (deferCount == 0)
