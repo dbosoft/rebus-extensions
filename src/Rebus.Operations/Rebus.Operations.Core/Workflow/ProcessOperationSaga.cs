@@ -135,7 +135,7 @@ namespace Dbosoft.Rebus.Operations.Workflow
                     MessageContext.Current.Headers).ConfigureAwait(false))
             {
                 _log.LogDebug("Operation Workflow {operationId}: Operation status change: {oldStatus} -> {newStatus}",
-                    message.OperationId, opOldStatus, op.Status);
+                    message.OperationId, opOldStatus, OperationStatus.Running);
 
 
                 await _workflow.Messaging.DispatchOperationStatusEventAsync(new OperationStatusEvent
@@ -147,7 +147,7 @@ namespace Dbosoft.Rebus.Operations.Workflow
             else
             {
                 _log.LogDebug("Operation Workflow {operationId}: Status NOT changed to {newStatus}, keeping {oldStatus}. Message: {messageType}",
-                    message.OperationId, op.Status, opOldStatus, nameof(OperationTaskAcceptedEvent));
+                    message.OperationId, OperationStatus.Running, opOldStatus, nameof(OperationTaskAcceptedEvent));
 
             }
 
@@ -163,7 +163,7 @@ namespace Dbosoft.Rebus.Operations.Workflow
             else
             {
                 _log.LogDebug("Operation Workflow {operationId}, Task {taskId}: Status NOT changed to {newStatus}, keeping {oldStatus}. Message: {messageType}",
-                    message.OperationId, message.TaskId, op.Status, opOldStatus, nameof(OperationTaskAcceptedEvent));
+                    message.OperationId, message.TaskId, OperationTaskStatus.Running, opOldStatus, nameof(OperationTaskAcceptedEvent));
 
             }
 
