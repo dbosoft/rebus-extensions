@@ -88,7 +88,7 @@ namespace Dbosoft.Rebus.Operations.Workflow
             }
 
             var task = await _workflow.Tasks
-                .GetOrCreateAsync(op, command, message.TaskId, message.InitiatingTaskId)
+                .GetOrCreateAsync(op, command, message.Created, message.TaskId, message.InitiatingTaskId)
                 .ConfigureAwait(false);
 
 
@@ -97,7 +97,7 @@ namespace Dbosoft.Rebus.Operations.Workflow
                 throw new InvalidOperationException($"unknown command type '{message.CommandType}'");
 
             Data.Tasks.TryAdd(message.TaskId, messageType.AssemblyQualifiedName!);
-            await _workflow.Messaging.DispatchTaskMessage(command,task);
+            await _workflow.Messaging.DispatchTaskMessage(command,task).ConfigureAwait(false);
         }
 
 
@@ -119,8 +119,10 @@ namespace Dbosoft.Rebus.Operations.Workflow
             }
 
             var opOldStatus = op.Status;
-            if (await _workflow.Operations.TryChangeStatusAsync(op, OperationStatus.Running, null, 
-                    MessageContext.Current.Headers))
+            if (await _workflow.Operations.TryChangeStatusAsync(op, OperationStatus.Running,
+                    message.Created,
+                    null, 
+                    MessageContext.Current.Headers).ConfigureAwait(false))
             {
                 _log.LogDebug("Operation Workflow {operationId}: Status changed: {oldStatus} -> {newStatus}",
                     message.OperationId, opOldStatus, op.Status);
@@ -130,12 +132,13 @@ namespace Dbosoft.Rebus.Operations.Workflow
                 {
                     OperationId = op.Id,
                     NewStatus = OperationStatus.Running
-                });
+                }).ConfigureAwait(false);
 
 
                 var taskOldStatus = task.Status;
                 if (await _workflow.Tasks.TryChangeStatusAsync(task, OperationTaskStatus.Running,
-                        message.AdditionalData))
+                        message.Created,
+                        message.AdditionalData).ConfigureAwait(false))
                 {
                     _log.LogDebug("Operation Workflow {operationId}, Task {taskId}: Status changed: {oldStatus} -> {newStatus}",
                         message.OperationId, message.TaskId, taskOldStatus, task.Status);
@@ -170,16 +173,17 @@ namespace Dbosoft.Rebus.Operations.Workflow
                 else
                 {
                     var taskCommandTypeName = Data.Tasks[message.TaskId];
-                    await _workflow.Messaging.DispatchTaskStatusEventAsync(taskCommandTypeName, message);
+                    await _workflow.Messaging.DispatchTaskStatusEventAsync(taskCommandTypeName, message).ConfigureAwait(false);
                 }
             }
 
             var taskOldStatus = task.Status;
             if(await _workflow.Tasks.TryChangeStatusAsync(task,
-                message.OperationFailed
-                    ? OperationTaskStatus.Failed
-                    : OperationTaskStatus.Completed
-                , message.GetMessage(_workflow.WorkflowOptions.JsonSerializerOptions)))
+                   message.OperationFailed
+                       ? OperationTaskStatus.Failed
+                       : OperationTaskStatus.Completed
+                   ,message.Created, 
+                   message.GetMessage(_workflow.WorkflowOptions.JsonSerializerOptions)).ConfigureAwait(false))
 
                 _log.LogDebug("Operation Workflow {operationId}, Task {taskId}: Status changed: {oldStatus} -> {newStatus}",
                     message.OperationId, message.TaskId, taskOldStatus, task.Status);
@@ -198,13 +202,15 @@ namespace Dbosoft.Rebus.Operations.Workflow
 
 
                 if (await _workflow.Operations.TryChangeStatusAsync(op,
-                        newStatus, message.GetMessage(_workflow.WorkflowOptions.JsonSerializerOptions), MessageContext.Current.Headers))
+                        newStatus,
+                        message.Created,
+                        message.GetMessage(_workflow.WorkflowOptions.JsonSerializerOptions), MessageContext.Current.Headers).ConfigureAwait(false))
                 {
                     await _workflow.Messaging.DispatchOperationStatusEventAsync(new OperationStatusEvent
                     {
                         OperationId = op.Id,
                         NewStatus = newStatus
-                    });
+                    }).ConfigureAwait(false);
                 }
 
                 _log.LogDebug("Operation Workflow {operationId}: Completing workflow",
@@ -225,7 +231,7 @@ namespace Dbosoft.Rebus.Operations.Workflow
                     {
                         message.InitiatingTaskId = initiatingTask.InitiatingTaskId;
                         message.TaskId = initiatingTask.Id;
-                        await _workflow.Messaging.DispatchTaskStatusEventAsync(taskCommandTypeName, message);
+                        await _workflow.Messaging.DispatchTaskStatusEventAsync(taskCommandTypeName, message).ConfigureAwait(false);
                     }
                 }
             }

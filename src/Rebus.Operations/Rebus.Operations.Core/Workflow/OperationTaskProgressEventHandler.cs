@@ -40,7 +40,7 @@ namespace Dbosoft.Rebus.Operations.Workflow
                     message.Timestamp,
                     operation,
                     task,
-                    message.Data, MessageContext.Current.Headers);
+                    message.Data, MessageContext.Current.Headers).ConfigureAwait(false);
             }
             else
             {

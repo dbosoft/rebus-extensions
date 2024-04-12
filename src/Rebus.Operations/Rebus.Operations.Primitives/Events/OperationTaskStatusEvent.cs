@@ -13,7 +13,7 @@ namespace Dbosoft.Rebus.Operations.Events
 
         protected OperationTaskStatusEvent(Guid operationId, Guid initiatingTaskId, Guid taskId, bool failed,
             string? messageType,
-            string? messageData) : base(operationId, initiatingTaskId, taskId, failed, messageType, messageData)
+            string? messageData) : base(operationId, initiatingTaskId, taskId, DateTimeOffset.Now,  failed, messageType, messageData)
         {
 
         }
@@ -52,7 +52,7 @@ namespace Dbosoft.Rebus.Operations.Events
         }
 
         public OperationTaskStatusEvent(OperationTaskStatusEvent message) :
-            base(message.OperationId, message.InitiatingTaskId, message.TaskId, message.OperationFailed, message.MessageType, message.MessageData)
+            base(message.OperationId, message.InitiatingTaskId, message.TaskId, message.Created, message.OperationFailed, message.MessageType, message.MessageData)
         {
         }
     }

@@ -24,9 +24,9 @@ public class NestedSaga : OperationTaskWorkflowSaga<NestedSagaCommand, NestedSag
 
     protected override async Task Initiated(NestedSagaCommand message)
     {
-        await StartNewTask<SubCommand2>();
-        await StartNewTask<SubCommand3>();
-        await StartNewTask<NestedNestedSagaCommand>();
+        await StartNewTask<SubCommand2>().ConfigureAwait(false);
+        await StartNewTask<SubCommand3>().ConfigureAwait(false);
+        await StartNewTask<NestedNestedSagaCommand>().ConfigureAwait(false);
     }
     
     public async Task Handle(OperationTaskStatusEvent<NestedNestedSagaCommand> message)
@@ -36,8 +36,8 @@ public class NestedSaga : OperationTaskWorkflowSaga<NestedSagaCommand, NestedSag
             Data.SagaCompleted = true;
 
             if (Data.SagaCompleted && Data.SubCommand2Completed && Data.SubCommand3Completed)
-                await Complete();
-        });
+                await Complete().ConfigureAwait(false);
+        }).ConfigureAwait(false);
     }
 
     public async Task Handle(OperationTaskStatusEvent<SubCommand2> message)
@@ -47,8 +47,8 @@ public class NestedSaga : OperationTaskWorkflowSaga<NestedSagaCommand, NestedSag
             Data.SubCommand2Completed = true;
 
             if (Data.SagaCompleted && Data.SubCommand2Completed && Data.SubCommand3Completed)
-                await Complete();
-        });
+                await Complete().ConfigureAwait(false);
+        }).ConfigureAwait(false);
     }
 
     public async Task Handle(OperationTaskStatusEvent<SubCommand3> message)
@@ -58,8 +58,8 @@ public class NestedSaga : OperationTaskWorkflowSaga<NestedSagaCommand, NestedSag
             Data.SubCommand3Completed = true;
 
             if (Data.SagaCompleted && Data.SubCommand2Completed && Data.SubCommand3Completed)
-                await Complete();
-        });
+                await Complete().ConfigureAwait(false);
+        }).ConfigureAwait(false);
     }
 
     public NestedSaga(IWorkflow workflowEngine) : base(workflowEngine)

@@ -26,8 +26,8 @@ public class InitialSaga : OperationTaskWorkflowSaga<InitialSagaCommand, Initial
 
     protected override async Task Initiated(InitialSagaCommand message)
     {
-        await StartNewTask<NestedSagaCommand>();
-        await StartNewTask<SubCommand1>();
+        await StartNewTask<NestedSagaCommand>().ConfigureAwait(false);
+        await StartNewTask<SubCommand1>().ConfigureAwait(false);
     }
     
 
@@ -38,8 +38,8 @@ public class InitialSaga : OperationTaskWorkflowSaga<InitialSagaCommand, Initial
             Data.SubCommand1Completed = true;
 
             if (Data.SubCommand1Completed && Data.SagaCompleted)
-                await Complete();
-        });
+                await Complete().ConfigureAwait(false);
+        }).ConfigureAwait(false);
     }
 
     public async Task Handle(OperationTaskStatusEvent<NestedSagaCommand> message)
@@ -49,8 +49,8 @@ public class InitialSaga : OperationTaskWorkflowSaga<InitialSagaCommand, Initial
             Data.SagaCompleted = true;
 
             if (Data.SubCommand1Completed && Data.SagaCompleted)
-                await Complete();
-        });
+                await Complete().ConfigureAwait(false);
+        }).ConfigureAwait(false);
     }
 
 

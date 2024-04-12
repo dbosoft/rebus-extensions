@@ -13,4 +13,6 @@ public interface IOperationTask
 
     OperationTaskStatus Status { get;  }
 
+    public DateTimeOffset Created { get; }
+
 }

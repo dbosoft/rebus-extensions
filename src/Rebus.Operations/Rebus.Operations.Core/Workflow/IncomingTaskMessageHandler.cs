@@ -28,7 +28,8 @@ namespace Dbosoft.Rebus.Operations.Workflow
                 throw new InvalidOperationException($"Operation Workflow {taskMessage.OperationId}/{taskMessage.TaskId}: missing command message");
 
             var headers = _messageEnricher.EnrichHeadersFromIncomingSystemMessage(taskMessage, MessageContext.Current.Headers);
-            await _bus.SendLocal(new OperationTask<T>(taskMessage.Message,  taskMessage.OperationId, taskMessage.InitiatingTaskId, taskMessage.TaskId)
+            await _bus.SendLocal(new OperationTask<T>(taskMessage.Message,  taskMessage.OperationId,taskMessage.InitiatingTaskId, 
+                    taskMessage.TaskId, taskMessage.Created)
             , headers
             ).ConfigureAwait(false);
 
@@ -39,7 +40,8 @@ namespace Dbosoft.Rebus.Operations.Workflow
                 OperationId = taskMessage.OperationId,
                 InitiatingTaskId = taskMessage.InitiatingTaskId,
                 TaskId = taskMessage.TaskId,
-                AdditionalData = _messageEnricher.EnrichTaskAcceptedReply(taskMessage)
+                AdditionalData = _messageEnricher.EnrichTaskAcceptedReply(taskMessage),
+                Created = taskMessage.Created
             };
 
             await _bus.Reply(reply).ConfigureAwait(false);

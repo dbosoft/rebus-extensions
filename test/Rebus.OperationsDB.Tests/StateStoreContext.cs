@@ -31,11 +31,11 @@ public class StateStoreContext : DbContext
             .WithOne(x => x.Operation)
             .HasForeignKey(x => x.OperationId)
             .OnDelete(DeleteBehavior.Cascade);
-        
+
         modelBuilder.Entity<OperationModel>()
             .Property(x => x.LastUpdate)
             .IsConcurrencyToken();
-        
+
         modelBuilder.Entity<OperationTaskModel>().HasKey(x => x.Id);
         modelBuilder.Entity<OperationTaskModel>().Property(x => x.Id).IsRequired().ValueGeneratedNever();
 

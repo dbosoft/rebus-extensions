@@ -16,8 +16,12 @@ using Rebus.Sagas.Exclusive;
 using Rebus.Transport.InMem;
 using SimpleInjector;
 using SimpleInjector.Lifestyles;
+using System.Transactions;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Rebus.TransactionScopes;
 using Xunit;
 using Xunit.Abstractions;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace Dbosoft.Rebus.OperationsDB.Tests;
 
@@ -34,7 +38,7 @@ public class DatabaseTests : IClassFixture<DatabaseTests.DeleteDb>
     private async Task SetupAndRunWorkflow(
         int workers, 
         int timeout,
-        Func<IOperationDispatcher, Task<IEnumerable<(IOperation?, OperationStatus)>>> starter,
+        Func<IServiceProvider, Task<IEnumerable<(IOperation?, OperationStatus)>>> starter,
         Func<IServiceProvider,IOperation?, Task>? validator = null)
     
     {
@@ -57,11 +61,12 @@ public class DatabaseTests : IClassFixture<DatabaseTests.DeleteDb>
         
         var contextOptions = new DbContextOptionsBuilder<StateStoreContext>()
             .UseSqlite("Data Source=state.db")
+            .ConfigureWarnings(x => x.Ignore(RelationalEventId.AmbientTransactionWarning))
             .Options;
 
         await using (var setupContext = new StateStoreContext(contextOptions))
         {
-            await setupContext.Database.EnsureCreatedAsync();
+            await setupContext.Database.EnsureCreatedAsync().ConfigureAwait(false);
         }
         
         container.Register(() => new StateStoreContext(contextOptions), Lifestyle.Scoped);
@@ -74,7 +79,6 @@ public class DatabaseTests : IClassFixture<DatabaseTests.DeleteDb>
             {
                 x.SimpleRetryStrategy(secondLevelRetriesEnabled: true, errorDetailsHeaderMaxLength: 5, maxDeliveryAttempts: 5);
                 x.SetNumberOfWorkers(workers);
-                x.SetMaxParallelism(workers);
                 x.EnableSimpleInjectorUnitOfWork();
             })
             .Logging(x=>x.MicrosoftExtensionsLogging(new XUnitLogger("rebus", _outputHelper, 
@@ -103,13 +107,14 @@ public class DatabaseTests : IClassFixture<DatabaseTests.DeleteDb>
         {
             // starts the bus
             var bus = startScope.GetInstance<IBus>();
-            await OperationsSetup.SubscribeEvents(bus, workflowOptions);
-            
-            await using var startContext = startScope.GetRequiredService<StateStoreContext>();
-            var dispatcher = startScope.GetRequiredService<IOperationDispatcher>();
+            await OperationsSetup.SubscribeEvents(bus, workflowOptions).ConfigureAwait(false);
 
-            operations = (await starter(dispatcher)).ToArray();
-            await startContext.SaveChangesAsync();
+            var context = startScope.GetInstance<StateStoreContext>();
+            context.Operations?.RemoveRange(await context.Operations.ToListAsync().ConfigureAwait(false));
+            context.OperationTasks?.RemoveRange(await context.OperationTasks.ToListAsync().ConfigureAwait(false));
+            context.OperationLogs?.RemoveRange(await context.OperationLogs.ToListAsync().ConfigureAwait(false));
+            await context.SaveChangesAsync().ConfigureAwait(false);
+            operations = (await starter(startScope).ConfigureAwait(false)).ToArray();
 
         }
         
@@ -118,8 +123,29 @@ public class DatabaseTests : IClassFixture<DatabaseTests.DeleteDb>
         
         while (!cancelTokenSource.IsCancellationRequested)
         {
+            await Task.Delay(500, CancellationToken.None).ConfigureAwait(false);
             await using var scope = AsyncScopedLifestyle.BeginScope(container);
             var repository = scope.GetInstance<IStateStoreRepository<OperationModel>>();
+            var taskRepository = scope.GetInstance<IStateStoreRepository<OperationTaskModel>>();
+
+            var allOperations = await repository.ListAsync(CancellationToken.None).ConfigureAwait(false);
+            var totalCount = allOperations.Count;
+            var completedCount = allOperations.Count(x => x.Status == OperationStatus.Completed);
+
+            var allTasks = await taskRepository
+                .ListAsync(CancellationToken.None).ConfigureAwait(false);
+            var totalTasksCount = allTasks.Count;
+            var completedTasksCount = allTasks.Count(x => x.Status == OperationTaskStatus.Completed);
+
+
+            _outputHelper.WriteLine($"Operations Total: {totalCount}, Completed: {completedCount}");
+            _outputHelper.WriteLine($"Tasks Total: {totalTasksCount}, Completed: {completedTasksCount}");
+
+            for (var index = 0; index < allOperations.Count; index++)
+            {
+                var operation = allOperations[index];
+                _outputHelper.WriteLine($"Operation {index} {operation.Id} Status: {operation.Status}");
+            }
 
             foreach (var id in pendingOperations.ToArray())
             {
@@ -127,8 +153,7 @@ public class DatabaseTests : IClassFixture<DatabaseTests.DeleteDb>
                     pendingOperations.Remove(id);
                 else
                 {
-                    await Task.Delay(500, CancellationToken.None);
-                    var currentOperation = await repository.GetByIdAsync(id.GetValueOrDefault(), CancellationToken.None);
+                    var currentOperation = allOperations.FirstOrDefault(x => x.Id == id);
                     if (currentOperation == null)
                         throw new NullReferenceException($"Operation {id} is null");
 
@@ -150,7 +175,7 @@ public class DatabaseTests : IClassFixture<DatabaseTests.DeleteDb>
             if (operation == null)
                 throw new NullReferenceException($"Operation is null is null");
 
-            var currentOperation = await repository.GetByIdAsync(operation.Id, CancellationToken.None);
+            var currentOperation = await repository.GetByIdAsync(operation.Id, CancellationToken.None).ConfigureAwait(false);
             if (currentOperation == null)
                 throw new NullReferenceException($"Operation {operation.Id} is null");
 
@@ -167,16 +192,24 @@ public class DatabaseTests : IClassFixture<DatabaseTests.DeleteDb>
     [InlineData(2, 10, 10000)]
     public async Task Runs_and_reports_a_simple_Workflow(int workers, int commands, int timeout)
     {
-        await SetupAndRunWorkflow(workers,timeout, async d =>
+        await SetupAndRunWorkflow(workers,timeout, async sp =>
         {
+            await using var startContext = sp.GetRequiredService<StateStoreContext>();
+            var dispatcher = sp.GetRequiredService<IOperationDispatcher>();
+
             var result = new List<(IOperation?, OperationStatus)>();
             foreach (var _ in Enumerable.Range(0, commands))
             {
-                result.Add((await d.StartNew<SimpleCommand>(), OperationStatus.Completed));
+                using var ta = new TransactionScope(TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
+                ta.EnlistRebus();
+                result.Add((await dispatcher.StartNew<SimpleCommand>().ConfigureAwait(false), OperationStatus.Completed));
+                await startContext.SaveChangesAsync().ConfigureAwait(false);
+                ta.Complete();
+                await Task.Delay(10).ConfigureAwait(false);
             }
 
             return result;
-        });
+        }).ConfigureAwait(false);
         
         
     }
@@ -184,20 +217,30 @@ public class DatabaseTests : IClassFixture<DatabaseTests.DeleteDb>
     [Theory]
     [InlineData(1, 1, 5000)]
     [InlineData(3, 5, 8000)]
-    [InlineData(5, 13, 20000)]
-    [InlineData(5, 30, 40000)]
+    [InlineData(5, 13, 10000)]
+    [InlineData(5, 30, 20000)]
+    [InlineData(3, 30, 20000)]
     public async Task Runs_and_reports_a_complex_Workflow(int workers, int commands, int timeout)
     {
-        await SetupAndRunWorkflow(workers,timeout, async d =>
+        await SetupAndRunWorkflow(workers,timeout, async sp =>
         {
             var result = new List<(IOperation?, OperationStatus)>();
+            await using var startContext = sp.GetRequiredService<StateStoreContext>();
+            var dispatcher = sp.GetRequiredService<IOperationDispatcher>();
+
             foreach (var _ in Enumerable.Range(0, commands))
             {
-                result.Add((await d.StartNew<InitialSagaCommand>(), OperationStatus.Completed));
+                using var ta = new TransactionScope(TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
+                ta.EnlistRebus();
+                result.Add((await dispatcher.StartNew<InitialSagaCommand>().ConfigureAwait(false), OperationStatus.Completed));
+                await startContext.SaveChangesAsync().ConfigureAwait(false);
+                ta.Complete();
+                await Task.Delay(10).ConfigureAwait(false);
+
             }
 
             return result;
-        });
+        }).ConfigureAwait(false);
         
         
     }

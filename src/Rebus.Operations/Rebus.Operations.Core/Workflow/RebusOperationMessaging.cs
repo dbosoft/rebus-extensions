@@ -49,7 +49,7 @@ public class RebusOperationMessaging : IOperationMessaging
         var messageType = command.GetType();
         var outboundMessage = Activator.CreateInstance(
             typeof(OperationTaskSystemMessage<>).MakeGenericType(messageType),
-            command, task.OperationId, task.InitiatingTaskId, task.Id);
+            command, task.OperationId, task.InitiatingTaskId, task.Id, task.Created);
 
         var taskHeaders = _messageEnricher.EnrichHeadersOfOutgoingSystemMessage(command,
             JoinHeaders(additionalHeaders, MessageContext.Current.Headers));

@@ -42,7 +42,7 @@ public abstract class OperationTaskDispatcherBase : IOperationTaskDispatcher
         return StartTask(operationId, initiatingTaskId, commandType, additionalData, additionalHeaders);
     }
 
-    protected abstract ValueTask<(IOperationTask, object)> CreateTask(Guid operationId, Guid initiatingTaskId, object command, object? additionalData, IDictionary<string,string>? additionalHeaders);
+    protected abstract ValueTask<(IOperationTask, object)> CreateTask(Guid operationId, Guid initiatingTaskId, object command, DateTimeOffset created, object? additionalData, IDictionary<string,string>? additionalHeaders);
 
     protected async ValueTask<IOperationTask?> StartTask(Guid operationId, Guid initiatingTaskId, 
         object command, object? additionalData, IDictionary<string,string>? additionalHeaders = null)
@@ -50,7 +50,8 @@ public abstract class OperationTaskDispatcherBase : IOperationTaskDispatcher
         if (command == null)
             throw new ArgumentNullException(nameof(command));
 
-        var (task, taskCommand) = await CreateTask(operationId, initiatingTaskId, command, additionalData, additionalHeaders);
+        var created = DateTimeOffset.Now;
+        var (task, taskCommand) = await CreateTask(operationId, initiatingTaskId, command, created, additionalData, additionalHeaders).ConfigureAwait(false);
         var commandJson = JsonSerializer.Serialize(taskCommand, _options.JsonSerializerOptions);
 
         var taskMessage = new CreateNewOperationTaskCommand(
@@ -58,11 +59,11 @@ public abstract class OperationTaskDispatcherBase : IOperationTaskDispatcher
             commandJson,
             operationId,
             initiatingTaskId,
-            task.Id);
+            task.Id, created);
 
         await (string.IsNullOrWhiteSpace(_options.OperationsDestination) 
             ? _bus.Send(taskMessage, additionalHeaders)
-            : _bus.Advanced.Routing.Send(_options.OperationsDestination, taskMessage, additionalHeaders)) ;
+            : _bus.Advanced.Routing.Send(_options.OperationsDestination, taskMessage, additionalHeaders)).ConfigureAwait(false) ;
 
         _logger.LogDebug("Send new command of type {commandType}. Id: {operationId}, ParentTaskId: {parentTaskId}",
             taskCommand.GetType().Name, operationId, initiatingTaskId);

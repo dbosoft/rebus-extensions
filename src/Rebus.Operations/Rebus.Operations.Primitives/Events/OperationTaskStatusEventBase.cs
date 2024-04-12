@@ -8,7 +8,9 @@ public class OperationTaskStatusEventBase : IOperationTaskStatusEvent
 {
     public OperationTaskStatusEventBase() {}
 
-    protected OperationTaskStatusEventBase(Guid operationId, Guid initiatingTaskId, Guid taskId, bool failed, string? messageType,
+    protected OperationTaskStatusEventBase(Guid operationId, Guid initiatingTaskId, Guid taskId,
+        DateTimeOffset created,
+        bool failed, string? messageType,
         string? messageData)
     {
         OperationId = operationId;
@@ -17,6 +19,7 @@ public class OperationTaskStatusEventBase : IOperationTaskStatusEvent
         OperationFailed = failed;
         MessageData = messageData;
         MessageType = messageType;
+        Created = created;
     }
 
     public string? MessageData { get; set; }
@@ -24,6 +27,7 @@ public class OperationTaskStatusEventBase : IOperationTaskStatusEvent
     public bool OperationFailed { get; set; }
     public Guid OperationId { get; set; }
     public Guid TaskId { get; set; }
+    public DateTimeOffset Created { get; set;  }
     public Guid InitiatingTaskId { get; set; }
 
     protected static (string? data, string? type) SerializeMessage(object? message, JsonSerializerOptions serializerOptions)

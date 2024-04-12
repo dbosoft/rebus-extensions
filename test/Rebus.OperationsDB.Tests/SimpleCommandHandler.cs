@@ -17,7 +17,7 @@ public class SimpleCommandHandler : IHandleMessages<OperationTask<SimpleCommand>
 
     public async Task Handle(OperationTask<SimpleCommand> message)
     {
-        await Task.Delay(1);
-        await _messaging.CompleteTask(message);
+        await Task.Delay(1).ConfigureAwait(false);
+        await _messaging.CompleteTask(message).ConfigureAwait(false);
     }
 }

@@ -24,14 +24,14 @@ public class DefaultOperationTaskDispatcher : OperationTaskDispatcherBase
     }
 
     protected override async ValueTask<(IOperationTask, object)> CreateTask(Guid operationId, Guid initiatingTaskId, 
-        object command, object? additionalData, IDictionary<string,string>? additionalHeaders)
+        object command, DateTimeOffset created, object? additionalData, IDictionary<string,string>? additionalHeaders)
     {
-        var op = await _operationManager.GetByIdAsync(operationId);
+        var op = await _operationManager.GetByIdAsync(operationId).ConfigureAwait(false);
         if (op == null)
         {
             throw new ArgumentException($"Operation {operationId} not found", nameof(operationId));
         }
 
-        return (await _operationTaskManager.GetOrCreateAsync(op, command, Guid.NewGuid(), initiatingTaskId), command);
+        return (await _operationTaskManager.GetOrCreateAsync(op, command, created, Guid.NewGuid(), initiatingTaskId).ConfigureAwait(false), command);
     }
 }

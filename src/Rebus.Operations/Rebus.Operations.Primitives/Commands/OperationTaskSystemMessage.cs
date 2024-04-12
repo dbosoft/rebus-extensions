@@ -14,12 +14,14 @@ namespace Dbosoft.Rebus.Operations.Commands
         {
         }
 
-        public OperationTaskSystemMessage(TMessage message, Guid operationId, Guid initiatingTaskId, Guid taskId)
+        public OperationTaskSystemMessage(
+            TMessage message, Guid operationId, Guid initiatingTaskId, Guid taskId, DateTimeOffset created)
         {
             Message = message;
             OperationId = operationId;
             InitiatingTaskId = initiatingTaskId;
             TaskId = taskId;
+            Created = created;
         }
 
         public TMessage? Message { get; set; }
@@ -29,5 +31,6 @@ namespace Dbosoft.Rebus.Operations.Commands
 
 
         public Guid TaskId { get; set; }
+        public DateTimeOffset Created { get; set; }
     }
 }

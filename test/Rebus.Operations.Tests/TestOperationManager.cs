@@ -22,6 +22,7 @@ public class TestOperationManager : OperationManagerBase
     }
 
     public override ValueTask<IOperation> GetOrCreateAsync(Guid operationId, object command,
+        DateTimeOffset created,
         object? additionalData, IDictionary<string,string>? additionalHeaders)
     {
         if (Operations.ContainsKey(operationId))
@@ -36,7 +37,9 @@ public class TestOperationManager : OperationManagerBase
         return new ValueTask<IOperation>(op);
     }
 
-    public override ValueTask<bool> TryChangeStatusAsync(IOperation operation, OperationStatus newStatus, 
+    public override ValueTask<bool> TryChangeStatusAsync(IOperation operation, 
+        OperationStatus newStatus, 
+        DateTimeOffset timestamp,
         object? additionalData, IDictionary<string,string>? messageHeaders)
     {
         if (!Operations.ContainsKey(operation.Id))

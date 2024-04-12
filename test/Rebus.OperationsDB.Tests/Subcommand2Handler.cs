@@ -14,9 +14,9 @@ public class Subcommand2Handler : IHandleMessages<OperationTask<SubCommand2>>
     
     public async Task Handle(OperationTask<SubCommand2> message)
     {
-        await Task.Delay(1);
-        await _taskMessaging.ProgressMessage(message, "started task Subcommand2");
-        await Task.Delay(1);
-        await _taskMessaging.CompleteTask(message);
+        await Task.Delay(1).ConfigureAwait(false);
+        await _taskMessaging.ProgressMessage(message, "started task Subcommand2").ConfigureAwait(false);
+        await Task.Delay(1).ConfigureAwait(false);
+        await _taskMessaging.CompleteTask(message).ConfigureAwait(false);
     }
 }

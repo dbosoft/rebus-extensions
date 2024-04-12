@@ -14,12 +14,12 @@ public class Subcommand3Handler : IHandleMessages<OperationTask<SubCommand3>>
     
     public async Task Handle(OperationTask<SubCommand3> message)
     {
-        await _taskMessaging.ProgressMessage(message, "started task Subcommand3");
-        await Task.Delay(1);
-        await _taskMessaging.ProgressMessage(message, 50);
-        await Task.Delay(1);
-        await _taskMessaging.ProgressMessage(message, 80);
-        await Task.Delay(500);
-        await _taskMessaging.CompleteTask(message);
+        await _taskMessaging.ProgressMessage(message, "started task Subcommand3").ConfigureAwait(false);
+        await Task.Delay(1).ConfigureAwait(false);
+        await _taskMessaging.ProgressMessage(message, 50).ConfigureAwait(false);
+        await Task.Delay(1).ConfigureAwait(false);
+        await _taskMessaging.ProgressMessage(message, 80).ConfigureAwait(false);
+        await Task.Delay(500).ConfigureAwait(false);
+        await _taskMessaging.CompleteTask(message).ConfigureAwait(false);
     }
 }

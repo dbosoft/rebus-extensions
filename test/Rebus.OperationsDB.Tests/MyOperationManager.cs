@@ -20,37 +20,43 @@ public class MyOperationManager : IOperationManager
 
     public async ValueTask<IOperation?> GetByIdAsync(Guid operationId)
     {
-        return await _repository.GetByIdAsync(operationId);
+        return await _repository.GetByIdAsync(operationId).ConfigureAwait(false);
     }
 
-    public async ValueTask<IOperation> GetOrCreateAsync(Guid operationId, object command, object? additionalData, IDictionary<string, string>? additionalHeaders)
+    public async ValueTask<IOperation> GetOrCreateAsync(Guid operationId, object command,
+        DateTimeOffset timestamp, object? additionalData, IDictionary<string, string>? additionalHeaders)
     {
-        var model = await _repository.GetByIdAsync(operationId);
+        var model = await _repository.GetByIdAsync(operationId).ConfigureAwait(false);
         if (model != null)
             return model;
         
         model = new OperationModel
         {
             Id = operationId,
-            Created = DateTimeOffset.Now,
-            LastUpdate = DateTimeOffset.Now,
+            Created = timestamp,
+            LastUpdate = timestamp,
             Status = OperationStatus.Queued,
         };
 
-        await _repository.AddAsync(model);
+        await _repository.AddAsync(model).ConfigureAwait(false);
         return model;
 
     }
 
-    public async ValueTask<bool> TryChangeStatusAsync(IOperation operation, OperationStatus newStatus, object? additionalData,
+    public async ValueTask<bool> TryChangeStatusAsync(IOperation operation, OperationStatus newStatus, 
+        DateTimeOffset timestamp,
+        object? additionalData,
         IDictionary<string, string>? messageHeaders)
     {
-        var model = await _repository.GetByIdAsync(operation.Id);
+        var model = await _repository.GetByIdAsync(operation.Id).ConfigureAwait(false);
         if (model == null)
             return false;
-        
+
+        if (model.LastUpdate > timestamp)
+            return false;
+
         model.Status = newStatus;
-        model.LastUpdate = DateTimeOffset.Now;
+        model.LastUpdate = timestamp;
         return true;
     }
 
@@ -66,11 +72,11 @@ public class MyOperationManager : IOperationManager
         if (data is int progressMsg)
             progress = progressMsg;
 
-        var taskEntry = await _taskRepository.GetByIdAsync(task.Id);
+        var taskEntry = await _taskRepository.GetByIdAsync(task.Id).ConfigureAwait(false);
         if (taskEntry != null)
         {
             taskEntry.Progress = progress;
-            taskEntry.LastUpdate = DateTimeOffset.Now;
+            taskEntry.LastUpdate = timestamp;
         }
 
         var opLogEntry =

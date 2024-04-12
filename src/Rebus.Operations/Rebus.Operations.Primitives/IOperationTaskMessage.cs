@@ -12,5 +12,6 @@ namespace Dbosoft.Rebus.Operations
         Guid InitiatingTaskId { get; }
 
         Guid TaskId { get;  }
+        DateTimeOffset Created { get; }
     }
 }

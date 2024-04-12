@@ -14,15 +14,15 @@ public static class OperationsSetup
 
         if (!string.IsNullOrWhiteSpace(options.EventDestination))
         {
-            await bus.Advanced.Topics.Subscribe(options.EventDestination);
+            await bus.Advanced.Topics.Subscribe(options.EventDestination).ConfigureAwait(false);
             return bus;
         }
         
-        await bus.Subscribe<OperationStatusEvent>();
-        await bus.Subscribe<OperationTaskAcceptedEvent>();
-        await bus.Subscribe<OperationTaskProgressEvent>();
-        await bus.Subscribe<OperationTaskStatusEvent>();
-        await bus.Subscribe<OperationTimeoutEvent>();
+        await bus.Subscribe<OperationStatusEvent>().ConfigureAwait(false);
+        await bus.Subscribe<OperationTaskAcceptedEvent>().ConfigureAwait(false);
+        await bus.Subscribe<OperationTaskProgressEvent>().ConfigureAwait(false);
+        await bus.Subscribe<OperationTaskStatusEvent>().ConfigureAwait(false);
+        await bus.Subscribe<OperationTimeoutEvent>().ConfigureAwait(false);
 
         return bus;
     }

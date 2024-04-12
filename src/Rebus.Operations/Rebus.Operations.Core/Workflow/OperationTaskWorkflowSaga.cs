@@ -77,9 +77,9 @@ namespace Dbosoft.Rebus.Operations.Workflow
                 return;
             
             if (message.OperationFailed)
-                await Fail(message.GetMessage(WorkflowEngine.WorkflowOptions.JsonSerializerOptions));
+                await Fail(message.GetMessage(WorkflowEngine.WorkflowOptions.JsonSerializerOptions)).ConfigureAwait(false);
 
-            await completedFunc();
+            await completedFunc().ConfigureAwait(false);
         }
 
         protected async Task FailOrRun<T, TOpMessage>(OperationTaskStatusEvent<T> message, Func<TOpMessage, Task> completedFunc)
@@ -90,12 +90,12 @@ namespace Dbosoft.Rebus.Operations.Workflow
                 return;
 
             if (message.OperationFailed)
-                await Fail(message.GetMessage(WorkflowEngine.WorkflowOptions.JsonSerializerOptions));
+                await Fail(message.GetMessage(WorkflowEngine.WorkflowOptions.JsonSerializerOptions)).ConfigureAwait(false);
             else
                 await completedFunc(
                     message.GetMessage(WorkflowEngine.WorkflowOptions.JsonSerializerOptions) as TOpMessage
                     ?? throw new InvalidOperationException(
-                        $"Message {typeof(T)} has not returned a result of type {typeof(TOpMessage)}."));
+                        $"Message {typeof(T)} has not returned a result of type {typeof(TOpMessage)}.")).ConfigureAwait(false);
         }
 
 
