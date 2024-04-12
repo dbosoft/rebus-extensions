@@ -196,6 +196,24 @@ namespace Dbosoft.Rebus.Operations.Workflow
                 return;
             }
 
+            if (task.Status == OperationTaskStatus.Queued)
+            {
+                var deferCount = 0;
+                if (MessageContext.Current.Headers.TryGetValue("rbs2-defer-count",
+                        out var deferCountString))
+                {
+                    deferCount = int.Parse(deferCountString);
+                }
+
+                if (deferCount == 0)
+                {
+                    _log.LogDebug("Operation Workflow {operationId}, Task {taskId}: Status change event received for queued task, deferring once",
+                        message.OperationId, message.TaskId);
+                    await _workflow.Messaging.SendDeferredMessage(message, TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                    return;
+                }
+            }
+
             if (task.Status is OperationTaskStatus.Queued or OperationTaskStatus.Running)
             {
                 if(!Data.Tasks.ContainsKey(message.TaskId))
