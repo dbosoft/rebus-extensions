@@ -134,9 +134,13 @@ namespace Dbosoft.Rebus.Operations.Workflow
                     null,
                     MessageContext.Current.Headers).ConfigureAwait(false))
             {
-                _log.LogDebug("Operation Workflow {operationId}: Operation status change: {oldStatus} -> {newStatus}",
-                    message.OperationId, opOldStatus, OperationStatus.Running);
 
+                if(opOldStatus != OperationStatus.Running)
+                    _log.LogDebug("Operation Workflow {operationId}: Operation status change: {oldStatus} -> {newStatus}",
+                                               message.OperationId, opOldStatus, OperationStatus.Running);
+                else
+                    _log.LogDebug("Operation Workflow {operationId}: Operation status already {newStatus}, only updated state",
+                                               message.OperationId, OperationStatus.Running);
 
                 await _workflow.Messaging.DispatchOperationStatusEventAsync(new OperationStatusEvent
                 {
@@ -156,9 +160,12 @@ namespace Dbosoft.Rebus.Operations.Workflow
                     message.Created,
                     message.AdditionalData).ConfigureAwait(false))
             {
-                _log.LogDebug("Operation Workflow {operationId}, Task {taskId}: Task accepted: {oldStatus} -> {newStatus}",
-                    message.OperationId, message.TaskId, taskOldStatus, task.Status);
-
+                if(taskOldStatus != OperationTaskStatus.Running)
+                    _log.LogDebug("Operation Workflow {operationId}, Task {taskId}: Task accepted: {oldStatus} -> {newStatus}",
+                                               message.OperationId, message.TaskId, taskOldStatus, OperationTaskStatus.Running);
+                else
+                    _log.LogDebug("Operation Workflow {operationId}, Task {taskId}: Task status already {newStatus}, only updated state",
+                                                                      message.OperationId, message.TaskId, OperationTaskStatus.Running);
             }
             else
             {
@@ -244,9 +251,12 @@ namespace Dbosoft.Rebus.Operations.Workflow
                    ,message.Created, 
                    message.GetMessage(_workflow.WorkflowOptions.JsonSerializerOptions)).ConfigureAwait(false))
 
-                _log.LogDebug("Operation Workflow {operationId}, Task {taskId}: Status changed: {oldStatus} -> {newStatus}",
-                    message.OperationId, message.TaskId, taskOldStatus, task.Status);
-
+                if(taskOldStatus != task.Status)
+                    _log.LogDebug("Operation Workflow {operationId}, Task {taskId}: Task status changed: {oldStatus} -> {newStatus}",
+                                               message.OperationId, message.TaskId, taskOldStatus, task.Status);
+                else
+                    _log.LogDebug("Operation Workflow {operationId}, Task {taskId}: Task status already {newStatus}, only updated state",
+                                               message.OperationId, message.TaskId, task.Status);
 
 
             if (message.TaskId == Data.PrimaryTaskId)
