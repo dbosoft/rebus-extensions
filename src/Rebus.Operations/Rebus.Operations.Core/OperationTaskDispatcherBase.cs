@@ -50,7 +50,7 @@ public abstract class OperationTaskDispatcherBase : IOperationTaskDispatcher
         if (command == null)
             throw new ArgumentNullException(nameof(command));
 
-        var created = DateTimeOffset.Now;
+        var created = DateTimeOffset.UtcNow;
         var (task, taskCommand) = await CreateTask(operationId, initiatingTaskId, command, created, additionalData, additionalHeaders).ConfigureAwait(false);
         var commandJson = JsonSerializer.Serialize(taskCommand, _options.JsonSerializerOptions);
 
