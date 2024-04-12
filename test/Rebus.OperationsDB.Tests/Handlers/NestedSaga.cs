@@ -1,11 +1,12 @@
 using Dbosoft.Rebus.Operations.Events;
 using Dbosoft.Rebus.Operations.Workflow;
+using Dbosoft.Rebus.OperationsDB.Tests.Commands;
 using Rebus.Handlers;
 using Rebus.Sagas;
 
-namespace Dbosoft.Rebus.OperationsDB.Tests;
+namespace Dbosoft.Rebus.OperationsDB.Tests.Handlers;
 
-public class NestedSaga : OperationTaskWorkflowSaga<NestedSagaCommand, NestedSagaData>, 
+public class NestedSaga : OperationTaskWorkflowSaga<NestedSagaCommand, NestedSagaData>,
     IHandleMessages<OperationTaskStatusEvent<SubCommand2>>,
     IHandleMessages<OperationTaskStatusEvent<SubCommand3>>,
     IHandleMessages<OperationTaskStatusEvent<NestedNestedSagaCommand>>
@@ -28,7 +29,7 @@ public class NestedSaga : OperationTaskWorkflowSaga<NestedSagaCommand, NestedSag
         await StartNewTask<SubCommand3>().ConfigureAwait(false);
         await StartNewTask<NestedNestedSagaCommand>().ConfigureAwait(false);
     }
-    
+
     public async Task Handle(OperationTaskStatusEvent<NestedNestedSagaCommand> message)
     {
         await FailOrRun(message, async () =>

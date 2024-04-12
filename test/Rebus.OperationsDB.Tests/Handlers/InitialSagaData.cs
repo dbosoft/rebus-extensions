@@ -1,6 +1,6 @@
 using Dbosoft.Rebus.Operations.Workflow;
 
-namespace Dbosoft.Rebus.OperationsDB.Tests;
+namespace Dbosoft.Rebus.OperationsDB.Tests.Handlers;
 
 public class InitialSagaData : TaskWorkflowSagaData
 {

@@ -1,19 +1,20 @@
 using Dbosoft.Rebus.Operations.Events;
 using Dbosoft.Rebus.Operations.Workflow;
+using Dbosoft.Rebus.OperationsDB.Tests.Commands;
 using Rebus.Handlers;
 using Rebus.Sagas;
 
-namespace Dbosoft.Rebus.OperationsDB.Tests;
+namespace Dbosoft.Rebus.OperationsDB.Tests.Handlers;
 
-public class InitialSaga : OperationTaskWorkflowSaga<InitialSagaCommand, InitialSagaData>, 
+public class InitialSaga : OperationTaskWorkflowSaga<InitialSagaCommand, InitialSagaData>,
     IHandleMessages<OperationTaskStatusEvent<NestedSagaCommand>>,
     IHandleMessages<OperationTaskStatusEvent<SubCommand1>>
-    
+
 {
     public InitialSaga(IWorkflow workflowEngine) : base(workflowEngine)
     {
     }
-    
+
     protected override void CorrelateMessages(ICorrelationConfig<InitialSagaData> config)
     {
         base.CorrelateMessages(config);
@@ -29,11 +30,11 @@ public class InitialSaga : OperationTaskWorkflowSaga<InitialSagaCommand, Initial
         await StartNewTask<NestedSagaCommand>().ConfigureAwait(false);
         await StartNewTask<SubCommand1>().ConfigureAwait(false);
     }
-    
+
 
     public async Task Handle(OperationTaskStatusEvent<SubCommand1> message)
     {
-        await FailOrRun<SubCommand1>(message, async () =>
+        await FailOrRun(message, async () =>
         {
             Data.SubCommand1Completed = true;
 
@@ -44,7 +45,7 @@ public class InitialSaga : OperationTaskWorkflowSaga<InitialSagaCommand, Initial
 
     public async Task Handle(OperationTaskStatusEvent<NestedSagaCommand> message)
     {
-        await FailOrRun<NestedSagaCommand>(message, async () =>
+        await FailOrRun(message, async () =>
         {
             Data.SagaCompleted = true;
 

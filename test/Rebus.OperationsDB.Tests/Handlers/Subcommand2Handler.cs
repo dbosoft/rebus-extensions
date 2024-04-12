@@ -1,7 +1,8 @@
 using Dbosoft.Rebus.Operations;
+using Dbosoft.Rebus.OperationsDB.Tests.Commands;
 using Rebus.Handlers;
 
-namespace Dbosoft.Rebus.OperationsDB.Tests;
+namespace Dbosoft.Rebus.OperationsDB.Tests.Handlers;
 
 public class Subcommand2Handler : IHandleMessages<OperationTask<SubCommand2>>
 {
@@ -11,7 +12,7 @@ public class Subcommand2Handler : IHandleMessages<OperationTask<SubCommand2>>
     {
         _taskMessaging = taskMessaging;
     }
-    
+
     public async Task Handle(OperationTask<SubCommand2> message)
     {
         await Task.Delay(1).ConfigureAwait(false);
