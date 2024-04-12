@@ -205,11 +205,11 @@ namespace Dbosoft.Rebus.Operations.Workflow
                     deferCount = int.Parse(deferCountString); 
                 }
 
-                if (deferCount == 0)
+                if (deferCount < 5)
                 {
-                    _log.LogDebug("Operation Workflow {operationId}, Task {taskId}: Status change event received for queued task, deferring once",
-                        message.OperationId, message.TaskId);
-                    await _workflow.Messaging.SendDeferredMessage(message, TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                    _log.LogDebug("Operation Workflow {operationId}, Task {taskId}: Status change event received for queued task, deferred {deferCount} times, deferring for {deferTime} ms",
+                        message.OperationId, message.TaskId, deferCount, 100*deferCount);
+                    await _workflow.Messaging.SendDeferredMessage(message, TimeSpan.FromMilliseconds(100*deferCount)).ConfigureAwait(false);
                     return;
                 }
             }
