@@ -88,6 +88,6 @@ public class RebusOperationMessaging : IOperationMessaging
     public IOperationTaskDispatcher TaskDispatcher { get; }
     public Task SendDeferredMessage(object message, TimeSpan defer)
     {
-        return _bus.Defer(defer, message);
+        return _bus.DeferLocal(defer, message);
     }
 }

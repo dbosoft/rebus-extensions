@@ -49,6 +49,9 @@ namespace Dbosoft.Rebus.Operations.Workflow
 
         public Task Handle(OperationCompleteEvent? message)
         {
+            _log.LogDebug("Operation Workflow {operationId}: Completing workflow",
+                Data.OperationId);
+
             MarkAsComplete();
             return Task.CompletedTask;
         }
@@ -160,9 +163,15 @@ namespace Dbosoft.Rebus.Operations.Workflow
         {
             if (_workflow.WorkflowOptions.DeferCompletion == TimeSpan.Zero)
             {
+                _log.LogDebug("Operation Workflow {operationId}: Completing workflow",
+                    Data.OperationId);
+
                 MarkAsComplete();
                 return;
             }
+
+            _log.LogDebug("Operation Workflow {operationId}: workflow can be completed, completion deferred for {deferred} seconds",
+                Data.OperationId, _workflow.WorkflowOptions.DeferCompletion.TotalSeconds);
 
             _workflow.Messaging.SendDeferredMessage(new OperationCompleteEvent
             {
@@ -234,9 +243,6 @@ namespace Dbosoft.Rebus.Operations.Workflow
                         NewStatus = newStatus
                     }).ConfigureAwait(false);
                 }
-
-                _log.LogDebug("Operation Workflow {operationId}: Completing workflow",
-                    message.OperationId);
 
                 Complete();
             }
