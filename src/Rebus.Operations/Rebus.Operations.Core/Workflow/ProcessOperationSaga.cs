@@ -134,7 +134,7 @@ namespace Dbosoft.Rebus.Operations.Workflow
                     null,
                     MessageContext.Current.Headers).ConfigureAwait(false))
             {
-                _log.LogDebug("Operation Workflow {operationId}: Status changed: {oldStatus} -> {newStatus}",
+                _log.LogDebug("Operation Workflow {operationId}: Operation status change: {oldStatus} -> {newStatus}",
                     message.OperationId, opOldStatus, op.Status);
 
 
@@ -156,7 +156,7 @@ namespace Dbosoft.Rebus.Operations.Workflow
                     message.Created,
                     message.AdditionalData).ConfigureAwait(false))
             {
-                _log.LogDebug("Operation Workflow {operationId}, Task {taskId}: Status changed: {oldStatus} -> {newStatus}",
+                _log.LogDebug("Operation Workflow {operationId}, Task {taskId}: Task accepted: {oldStatus} -> {newStatus}",
                     message.OperationId, message.TaskId, taskOldStatus, task.Status);
 
             }
