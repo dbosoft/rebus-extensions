@@ -1,9 +1,10 @@
-﻿using System;
+﻿using JetBrains.Annotations;
+using System;
 using System.Text.Json;
 
 namespace Dbosoft.Rebus.Operations.Events;
 
-#nullable enable
+[PublicAPI]
 public class OperationTaskStatusEventBase : IOperationTaskStatusEvent
 {
     public OperationTaskStatusEventBase() {}
@@ -32,11 +33,9 @@ public class OperationTaskStatusEventBase : IOperationTaskStatusEvent
 
     protected static (string? data, string? type) SerializeMessage(object? message, JsonSerializerOptions serializerOptions)
     {
-        if (message == null)
-            return (null, null);
-
-
-        return (JsonSerializer.Serialize(message, serializerOptions), message.GetType().AssemblyQualifiedName);
+        return message == null 
+            ? (null, null) 
+            : (JsonSerializer.Serialize(message, serializerOptions), message.GetType().AssemblyQualifiedName);
     }
 
     public object? GetMessage(JsonSerializerOptions serializerOptions)

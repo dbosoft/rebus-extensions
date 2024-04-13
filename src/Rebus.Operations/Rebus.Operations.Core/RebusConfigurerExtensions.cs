@@ -10,9 +10,8 @@ public static class RebusConfigurerExtensions
         AddOperations(this TypeBasedRouterConfigurationExtensions.TypeBasedRouterConfigurationBuilder typeBasedRouter, 
             string operationsOwner, string? eventsOwner = default)
     {
-        if (eventsOwner == default)
-            eventsOwner = operationsOwner;
-        
+        eventsOwner ??= operationsOwner;
+
         return typeBasedRouter
             .Map<CreateOperationCommand>(operationsOwner)
             .Map<CreateNewOperationTaskCommand>(operationsOwner)

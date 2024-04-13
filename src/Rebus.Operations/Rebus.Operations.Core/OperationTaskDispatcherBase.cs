@@ -1,8 +1,4 @@
-﻿
-
-#nullable enable
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -55,7 +51,8 @@ public abstract class OperationTaskDispatcherBase : IOperationTaskDispatcher
         var commandJson = JsonSerializer.Serialize(taskCommand, _options.JsonSerializerOptions);
 
         var taskMessage = new CreateNewOperationTaskCommand(
-            taskCommand.GetType().AssemblyQualifiedName,
+            taskCommand.GetType().AssemblyQualifiedName 
+            ?? throw new InvalidOperationException($"could not find qualified name of task command {taskCommand.GetType()}"),
             commandJson,
             operationId,
             initiatingTaskId,

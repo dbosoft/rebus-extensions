@@ -1,5 +1,4 @@
-﻿#nullable enable
-namespace Dbosoft.Rebus.Operations.Workflow;
+﻿namespace Dbosoft.Rebus.Operations.Workflow;
 
 public interface IWorkflow
 {

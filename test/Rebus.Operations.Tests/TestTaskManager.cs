@@ -14,8 +14,8 @@ public class TestTaskManager : OperationTaskManagerBase
     public override ValueTask<IOperationTask?> GetByIdAsync(Guid taskId)
     {
         return ValueTask.FromResult( 
-            Tasks.ContainsKey(taskId) 
-                ? Tasks[taskId] as IOperationTask : null);
+            Tasks.TryGetValue(taskId, out var task) 
+                ? task as IOperationTask : null);
 
     }
 

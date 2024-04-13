@@ -35,7 +35,7 @@ public class MyOperationManager : IOperationManager
             Id = operationId,
             Created = timestamp,
             LastUpdate = timestamp,
-            Status = OperationStatus.Queued,
+            Status = OperationStatus.Queued
         };
 
         await _repository.AddAsync(model).ConfigureAwait(false);
@@ -66,11 +66,15 @@ public class MyOperationManager : IOperationManager
         var message = "";
         var progress = 0;
 
-        if (data is string msgString)
-            message = msgString;
-        
-        if (data is int progressMsg)
-            progress = progressMsg;
+        switch (data)
+        {
+            case string msgString:
+                message = msgString;
+                break;
+            case int progressMsg:
+                progress = progressMsg;
+                break;
+        }
 
         var taskEntry = await _taskRepository.GetByIdAsync(task.Id).ConfigureAwait(false);
         if (taskEntry != null)

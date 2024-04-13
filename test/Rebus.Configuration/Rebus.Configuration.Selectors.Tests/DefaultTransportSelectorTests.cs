@@ -92,7 +92,7 @@ public class DefaultTransportSelectorTests : SelectorTests
     {
         var deps = SetupDeps(new Dictionary<string, string>
         {
-            { "bus:type", "filesystem" },
+            { "bus:type", "filesystem" }
         });
 
 

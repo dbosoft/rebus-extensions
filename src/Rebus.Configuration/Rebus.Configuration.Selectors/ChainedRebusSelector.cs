@@ -42,9 +42,9 @@ public class ChainedRebusSelector<TConfigure>: GenericRebusSelectorBase<TConfigu
             foreach (var configType in selector.AcceptedConfigTypes)
             {
                 List<GenericRebusSelectorBase<TConfigure>> list; 
-                if (_selectors.ContainsKey(configType))
+                if (_selectors.TryGetValue(configType, out var foundSelectors))
                 {
-                    list = _selectors[configType];
+                    list = foundSelectors;
                 }
                 else
                 {

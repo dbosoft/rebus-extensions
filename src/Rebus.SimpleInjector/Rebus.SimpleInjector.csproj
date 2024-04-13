@@ -9,6 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="JetBrains.Annotations" Version="2022.3.1" />
       <PackageReference Include="Rebus" Version="7.0.0" />
       <PackageReference Include="Rebus.UnitOfWork" Version="6.0.0" />
       <PackageReference Include="SimpleInjector" Version="5.0.0" />

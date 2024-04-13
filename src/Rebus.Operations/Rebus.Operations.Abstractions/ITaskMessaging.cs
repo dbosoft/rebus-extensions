@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace Dbosoft.Rebus.Operations;
 
+[PublicAPI]
 public interface ITaskMessaging
 {
     Task FailTask(IOperationTaskMessage message, string errorMessage,

@@ -41,9 +41,9 @@ public class ChainedTransportSelector : RebusTransportSelectorBase
             foreach (var configType in selector.AcceptedConfigTypes)
             {
                 List<RebusTransportSelectorBase> list;
-                if (_selectors.ContainsKey(configType))
+                if (_selectors.TryGetValue(configType, out var foundSelectors))
                 {
-                    list = _selectors[configType];
+                    list = foundSelectors;
                 }
                 else
                 {

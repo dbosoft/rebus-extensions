@@ -6,8 +6,8 @@ public class OperationLogEntry
     public Guid OperationId { get; set; }
     public Guid TaskId { get; set; }
 
-    public string Message { get; set; }
-    public virtual OperationModel Operation { get; set; }
-    public virtual OperationTaskModel Task { get; set; }
+    public string? Message { get; set; }
+    public virtual OperationModel? Operation { get; set; }
+    public virtual OperationTaskModel? Task { get; set; }
     public DateTimeOffset Timestamp { get; set; }
 }

@@ -7,8 +7,6 @@ using Rebus.Bus;
 
 namespace Dbosoft.Rebus.Operations;
 
-#nullable enable
-
 public class DefaultOperationDispatcher : OperationDispatcherBase
 {
     private readonly IOperationManager _operationManager;

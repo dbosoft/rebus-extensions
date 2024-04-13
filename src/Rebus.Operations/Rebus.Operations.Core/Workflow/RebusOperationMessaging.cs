@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Dbosoft.Rebus.Operations.Commands;
 using Dbosoft.Rebus.Operations.Events;
 using Rebus.Bus;
-using Rebus.Messages;
 using Rebus.Pipeline;
 
 namespace Dbosoft.Rebus.Operations.Workflow;
@@ -29,7 +28,7 @@ public class RebusOperationMessaging : IOperationMessaging
         TaskDispatcher = taskDispatcher;
     }
 
-    private IDictionary<string, string>? JoinHeaders(IDictionary<string, string>? one,
+    private static IDictionary<string, string>? JoinHeaders(IDictionary<string, string>? one,
         IDictionary<string, string>? another)
     {
         if (one == null)

@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dbosoft.Rebus.Operations.Events;
+using JetBrains.Annotations;
 
 namespace Dbosoft.Rebus.Operations.Workflow;
 
+[PublicAPI]
 public interface IOperationMessaging
 {
     Task DispatchTaskMessage(object command, IOperationTask task, IDictionary<string,string>? additionalHeaders = null);

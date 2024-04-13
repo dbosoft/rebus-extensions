@@ -1,6 +1,5 @@
 using Dbosoft.Rebus.Operations;
 using Dbosoft.Rebus.Operations.Tests;
-using Dbosoft.Rebus.Operations.Workflow;
 using Microsoft.Extensions.DependencyInjection;
 using Rebus.Bus;
 using Rebus.Handlers;

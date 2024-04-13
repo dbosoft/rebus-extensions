@@ -8,75 +8,76 @@ using SimpleInjector.Lifestyles;
 // ReSharper disable ArgumentsStyleLiteral
 #pragma warning disable 1998
 
-namespace Dbosoft.Rebus
+namespace Dbosoft.Rebus;
+
+internal class SimpleInjectorContainerAdapter : IContainerAdapter
 {
-    internal class SimpleInjectorContainerAdapter : IContainerAdapter
+    private readonly Container _container;
+
+    private bool _busWasSet;
+
+    /// <summary>
+    ///     Constructs the container adapter
+    /// </summary>
+    public SimpleInjectorContainerAdapter(Container container)
     {
-        private readonly Container _container;
+        _container = container ?? throw new ArgumentNullException(nameof(container));
+    }
 
-        private bool _busWasSet;
-
-        /// <summary>
-        ///     Constructs the container adapter
-        /// </summary>
-        public SimpleInjectorContainerAdapter(Container container)
+    /// <summary>
+    ///     Resolves all handlers for the given <typeparamref name="TMessage" /> message type
+    /// </summary>
+    public async Task<IEnumerable<IHandleMessages<TMessage>>> GetHandlers<TMessage>(TMessage message,
+        ITransactionContext transactionContext)
+    {
+        var scope = AsyncScopedLifestyle.BeginScope(_container);
+        if (TryGetInstance<IEnumerable<IHandleMessages<TMessage>>>(_container, out var handlerInstances))
         {
-            _container = container ?? throw new ArgumentNullException(nameof(container));
-        }
+            var handlerList = handlerInstances.ToList();
+            transactionContext.Items["SI_scope"] = scope;
 
-        /// <summary>
-        ///     Resolves all handlers for the given <typeparamref name="TMessage" /> message type
-        /// </summary>
-        public async Task<IEnumerable<IHandleMessages<TMessage>>> GetHandlers<TMessage>(TMessage message,
-            ITransactionContext transactionContext)
-        {
-            var scope = AsyncScopedLifestyle.BeginScope(_container);
-            if (TryGetInstance<IEnumerable<IHandleMessages<TMessage>>>(_container, out var handlerInstances))
+            transactionContext.OnDisposed(_ =>
             {
-                var handlerList = handlerInstances.ToList();
-                transactionContext.Items["SI_scope"] = scope;
+                // ReSharper disable once SuspiciousTypeConversion.Global
+                foreach (var disposable in handlerList.OfType<IDisposable>()) disposable.Dispose();
 
-                transactionContext.OnDisposed(ctx =>
-                {
-                    foreach (var disposable in handlerList.OfType<IDisposable>()) disposable.Dispose();
+                scope.Dispose();
+            });
 
-                    scope.Dispose();
-                });
-
-                return handlerList;
-            }
-
-            scope.Dispose();
-
-            return Array.Empty<IHandleMessages<TMessage>>();
+            return handlerList;
         }
 
-        public void SetBus(IBus bus)
-        {
-            // hack: this is just to satisfy the contract test... we are pretty sure that
-            // 1. the SetBus method is not called twice, becauwe
-            // 2. we are the only ones who create the instance of the container adapter, because
-            // 3. the container adapter class is internal
-            if (_busWasSet)
-                throw new InvalidOperationException(
-                    "SetBus was called twice on the container adapter. This is a sign that something has gone wrong during the configuration process.");
-            _busWasSet = true;
+        await scope.DisposeAsync();
 
-            // 2nd hack:
-            // again: we control calls to SetBus in this container adapter, because we create it...
-            // so, to make the contract tests happy, we need to do this:
-            var actualBusType = bus.GetType();
+        return Array.Empty<IHandleMessages<TMessage>>();
+    }
 
-            if (actualBusType.Name == "FakeBus" && actualBusType.DeclaringType?.Name == "ContainerTests`1")
-                bus.Dispose();
-        }
+    public void SetBus(IBus bus)
+    {
+        // hack: this is just to satisfy the contract test... we are pretty sure that
+        // 1. the SetBus method is not called twice, becauwe
+        // 2. we are the only ones who create the instance of the container adapter, because
+        // 3. the container adapter class is internal
+        if (_busWasSet)
+            throw new InvalidOperationException(
+                "SetBus was called twice on the container adapter. This is a sign that something has gone wrong during the configuration process.");
+        _busWasSet = true;
 
-        private static bool TryGetInstance<TService>(Container container, out TService instance)
-            where TService : class
-        {
-            IServiceProvider provider = container;
-            instance = (TService) provider.GetService(typeof(TService));
-            return instance != null;
-        }
+        // 2nd hack:
+        // again: we control calls to SetBus in this container adapter, because we create it...
+        // so, to make the contract tests happy, we need to do this:
+        var actualBusType = bus.GetType();
+
+        if (actualBusType is { Name: "FakeBus", DeclaringType.Name: "ContainerTests`1" })
+            bus.Dispose();
+    }
+
+    // ReSharper disable once SuggestBaseTypeForParameter
+    private static bool TryGetInstance<TService>(Container container, out TService instance)
+        where TService : class
+    {
+        IServiceProvider provider = container;
+        instance = (TService) provider.GetService(typeof(TService));
+        return instance != null;
     }
 }
