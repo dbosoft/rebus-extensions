@@ -5,7 +5,9 @@ using Dbosoft.Rebus.Operations.Commands;
 using Dbosoft.Rebus.Operations.Events;
 using Microsoft.Extensions.Logging;
 using Rebus.Bus;
+using Rebus.Extensions;
 using Rebus.Handlers;
+using Rebus.Messages;
 using Rebus.Pipeline;
 using Rebus.Transport;
 
@@ -24,19 +26,6 @@ namespace Dbosoft.Rebus.Operations.Workflow
             _messageEnricher = messageEnricher;
         }
 
-        private static async void Resubmit(
-            IBus bus,
-            OperationTaskSystemMessage<T> taskMessage, IDictionary<string, string>? headers)
-        {
-            using var scope = new RebusTransactionScope();
-            await bus.SendLocal(new OperationTask<T>(taskMessage.Message, 
-                    taskMessage.OperationId, taskMessage.InitiatingTaskId,
-                    taskMessage.TaskId, taskMessage.Created)
-                , headers
-            ).ConfigureAwait(false);
-
-            await scope.CompleteAsync().ConfigureAwait(false);
-        }
 
         public async Task Handle(OperationTaskSystemMessage<T> taskMessage)
         {
@@ -50,13 +39,27 @@ namespace Dbosoft.Rebus.Operations.Workflow
                 InitiatingTaskId = taskMessage.InitiatingTaskId,
                 TaskId = taskMessage.TaskId,
                 AdditionalData = _messageEnricher.EnrichTaskAcceptedReply(taskMessage),
-                Created = taskMessage.Created
+                Created = DateTimeOffset.UtcNow
             };
+            var replyAddress = MessageContext.Current.Headers.GetValueOrNull(Headers.ReturnAddress);
 
-            await _bus.Reply(reply).ConfigureAwait(false);
-            _logger.LogTrace($"Accepted incoming operation message. Operation id: '{taskMessage.OperationId}'");
+            if (replyAddress == null)
+            {
+                _logger.LogWarning($"Operation Workflow {taskMessage.OperationId}/{taskMessage.TaskId}: missing return address");
+            }
+            else
+            {
+                using var replyScope = new RebusTransactionScope();
+                await _bus.Advanced.Routing.Send(replyAddress, reply).ConfigureAwait(false);
+                _logger.LogTrace($"Accepted incoming operation message. Operation id: '{taskMessage.OperationId}'");
+                await replyScope.CompleteAsync().ConfigureAwait(false);
+            }
 
-            Resubmit(_bus, taskMessage, headers);
+            await _bus.SendLocal(new OperationTask<T>(taskMessage.Message,
+                    taskMessage.OperationId, taskMessage.InitiatingTaskId,
+                    taskMessage.TaskId, taskMessage.Created)
+                , headers
+            ).ConfigureAwait(false);
         }
     }
 }
