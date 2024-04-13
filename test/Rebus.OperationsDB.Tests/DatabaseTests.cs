@@ -97,7 +97,7 @@ public class DatabaseTests : IClassFixture<DatabaseTests.DeleteDb>
             .ConfigureLogging(l =>
             {
                 l.AddXUnit(_outputHelper);
-                l.SetMinimumLevel(LogLevel.Debug);
+                l.SetMinimumLevel(LogLevel.Trace);
             })
             .ConfigureServices(s=>s.AddSimpleInjector(container,
                 cfg => cfg.AddLogging()))
