@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using JetBrains.Annotations;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Rebus.Config;
@@ -6,6 +7,7 @@ using Rebus.Timeouts;
 
 namespace Dbosoft.Rebus.Configuration;
 
+[PublicAPI]
 public class SqlServerTimeoutsSelector: SqlServerSelectorBase<ITimeoutManager>
 {
     private readonly IOptions<SqlServerTimeoutsStoreOptions> _options;

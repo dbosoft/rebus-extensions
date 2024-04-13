@@ -1,9 +1,11 @@
 using Dbosoft.Rebus.Operations;
 using Dbosoft.Rebus.OperationsDB.Tests.Commands;
+using JetBrains.Annotations;
 using Rebus.Handlers;
 
 namespace Dbosoft.Rebus.OperationsDB.Tests.Handlers;
 
+[UsedImplicitly]
 public class Subcommand3Handler : IHandleMessages<OperationTask<SubCommand3>>
 {
     private readonly ITaskMessaging _taskMessaging;

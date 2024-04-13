@@ -3,8 +3,6 @@ using System.Threading.Tasks;
 
 namespace Dbosoft.Rebus.Operations.Workflow;
 
-#nullable enable
-
 public interface IOperationTaskManager
 {
     ValueTask<IOperationTask?> GetByIdAsync(Guid taskId);

@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices.ComTypes;
 using Dbosoft.Rebus.Operations.Events;
 using Dbosoft.Rebus.Operations.Workflow;
 using Rebus.Handlers;

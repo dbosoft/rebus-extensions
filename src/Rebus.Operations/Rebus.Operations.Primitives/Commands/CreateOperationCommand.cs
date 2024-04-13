@@ -1,7 +1,6 @@
-﻿namespace Dbosoft.Rebus.Operations.Commands
+﻿namespace Dbosoft.Rebus.Operations.Commands;
+
+public class CreateOperationCommand
 {
-    public class CreateOperationCommand
-    {
-        public CreateNewOperationTaskCommand? TaskMessage { get; set; }
-    }
+    public CreateNewOperationTaskCommand? TaskMessage { get; set; }
 }

@@ -13,7 +13,7 @@ public class ChainedTransportSelectorTests : SelectorTests
     {
         var deps = SetupDeps(new Dictionary<string, string>
         {
-            { "bus:type", "bus2" },
+            { "bus:type", "bus2" }
         });
 
         var selector1 = new DummySelector(new[] { "bus1" }, deps.Configuration, deps.Logger, false);
@@ -39,7 +39,7 @@ public class ChainedTransportSelectorTests : SelectorTests
     {
         var deps = SetupDeps(new Dictionary<string, string>
         {
-            { "bus:type", "bus2" },
+            { "bus:type", "bus2" }
         });
 
         var selector1 = new DummySelector(new[] { "bus1" }, deps.Configuration, deps.Logger, false);
@@ -58,7 +58,7 @@ public class ChainedTransportSelectorTests : SelectorTests
     {
         var deps = SetupDeps(new Dictionary<string, string>
         {
-            { "bus:type", "bus2" },
+            { "bus:type", "bus2" }
         });
 
         Assert.Throws<ArgumentException>(() =>
@@ -73,7 +73,7 @@ public class ChainedTransportSelectorTests : SelectorTests
     {
         var deps = SetupDeps(new Dictionary<string, string>
         {
-            { "bus:type", "bus1" },
+            { "bus:type", "bus1" }
         });
 
         var selector1 = new DummySelector(new[] { "bus1" }, deps.Configuration, deps.Logger, false);
@@ -99,7 +99,7 @@ public class ChainedTransportSelectorTests : SelectorTests
     {
         var deps = SetupDeps(new Dictionary<string, string>
         {
-            { "bus:type", "bus1" },
+            { "bus:type", "bus1" }
         });
 
         var selector1 = new DummySelector(new[] { "bus1" }, deps.Configuration, deps.Logger, true);
@@ -134,8 +134,8 @@ public class ChainedTransportSelectorTests : SelectorTests
             ConfigurationName = configName;
         }
 
-        public string ConfigureBusTypeAsOneWayClientWithBusType;
-        public string ConfigureBusTypeWithBusType;
+        public string? ConfigureBusTypeAsOneWayClientWithBusType;
+        public string? ConfigureBusTypeWithBusType;
         public override string ConfigurationName { get; }
 
         public override string[] AcceptedConfigTypes { get; }

@@ -1,11 +1,13 @@
 using Dbosoft.Rebus.Operations.Events;
 using Dbosoft.Rebus.Operations.Workflow;
 using Dbosoft.Rebus.OperationsDB.Tests.Commands;
+using JetBrains.Annotations;
 using Rebus.Handlers;
 using Rebus.Sagas;
 
 namespace Dbosoft.Rebus.OperationsDB.Tests.Handlers;
 
+[UsedImplicitly]
 public class InitialSaga : OperationTaskWorkflowSaga<InitialSagaCommand, InitialSagaData>,
     IHandleMessages<OperationTaskStatusEvent<NestedSagaCommand>>,
     IHandleMessages<OperationTaskStatusEvent<SubCommand1>>

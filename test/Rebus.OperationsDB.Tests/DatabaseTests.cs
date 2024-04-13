@@ -175,7 +175,7 @@ public class DatabaseTests : IClassFixture<DatabaseTests.DeleteDb>
         {
             var repository = validatorScope.GetInstance<IStateStoreRepository<OperationModel>>();
             if (operation == null)
-                throw new NullReferenceException($"Operation is null is null");
+                throw new NullReferenceException("Operation is null");
 
             var currentOperation = await repository.GetByIdAsync(operation.Id, CancellationToken.None).ConfigureAwait(false);
             if (currentOperation == null)

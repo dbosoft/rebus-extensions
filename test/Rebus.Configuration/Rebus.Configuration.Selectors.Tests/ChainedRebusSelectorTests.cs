@@ -13,7 +13,7 @@ public class ChainedRebusSelectorTests : SelectorTests
     {
         var deps = SetupDeps(new Dictionary<string, string>
         {
-            { "databus:type", "bus2" },
+            { "databus:type", "bus2" }
         });
 
         var selector1 = new DummySelector(new[] { "bus1" }, deps.Configuration, deps.Logger, false);
@@ -35,7 +35,7 @@ public class ChainedRebusSelectorTests : SelectorTests
     {
         var deps = SetupDeps(new Dictionary<string, string>
         {
-            { "databus:type", "bus2" },
+            { "databus:type", "bus2" }
         });
 
         Assert.Throws<ArgumentException>(() =>
@@ -51,7 +51,7 @@ public class ChainedRebusSelectorTests : SelectorTests
     {
         var deps = SetupDeps(new Dictionary<string, string>
         {
-            { "databus:type", "bus1" },
+            { "databus:type", "bus1" }
         });
 
         var selector1 = new DummySelector(new[] { "bus1" }, deps.Configuration, deps.Logger, false);
@@ -72,7 +72,7 @@ public class ChainedRebusSelectorTests : SelectorTests
     {
         var deps = SetupDeps(new Dictionary<string, string>
         {
-            { "databus:type", "bus1" },
+            { "databus:type", "bus1" }
         });
 
         var selector1 = new DummySelector(new[] { "bus1" }, deps.Configuration, deps.Logger, true);
@@ -92,7 +92,7 @@ public class ChainedRebusSelectorTests : SelectorTests
     {
         var deps = SetupDeps(new Dictionary<string, string>
         {
-            { "bus:type", "bus2" },
+            { "bus:type", "bus2" }
         });
 
 
@@ -108,7 +108,7 @@ public class ChainedRebusSelectorTests : SelectorTests
     {
         var deps = SetupDeps(new Dictionary<string, string>
         {
-            { "bus:type", "bus2" },
+            { "bus:type", "bus2" }
         });
 
         var selector1 = new DummySelector(new[] { "bus1" }, deps.Configuration, deps.Logger, false);
@@ -137,7 +137,7 @@ public class ChainedRebusSelectorTests : SelectorTests
             ConfigurationName = configName;
         }
 
-        public string ConfigureBusTypeWithBusType;
+        public string? ConfigureBusTypeWithBusType;
 
 
         public override string[] AcceptedConfigTypes { get; }

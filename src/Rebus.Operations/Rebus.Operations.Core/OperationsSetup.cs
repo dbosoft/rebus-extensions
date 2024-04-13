@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using Dbosoft.Rebus.Operations.Events;
-using Dbosoft.Rebus.Operations.Workflow;
 using Rebus.Bus;
 
 namespace Dbosoft.Rebus.Operations;

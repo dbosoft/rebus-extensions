@@ -1,7 +1,6 @@
-﻿namespace Dbosoft.Rebus
+﻿namespace Dbosoft.Rebus;
+
+public interface IRebusUnitOfWork : IAsyncDisposable, IDisposable
 {
-    public interface IRebusUnitOfWork : IAsyncDisposable, IDisposable
-    {
-        public Task Commit();
-    }
+    public Task Commit();
 }

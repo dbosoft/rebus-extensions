@@ -1,5 +1,3 @@
-using Dbosoft.Rebus.Operations.Workflow;
-using Rebus.Bus;
 using Rebus.Handlers;
 
 namespace Dbosoft.Rebus.Operations.Tests;

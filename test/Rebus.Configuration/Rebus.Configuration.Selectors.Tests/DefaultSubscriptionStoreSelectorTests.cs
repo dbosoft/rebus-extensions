@@ -90,7 +90,7 @@ public class DefaultSubscriptionStoreSelectorTests : SelectorTests
     {
         var deps = SetupDeps(new Dictionary<string, string>
         {
-            { "store:type", "filesystem" },
+            { "store:type", "filesystem" }
         });
 
 

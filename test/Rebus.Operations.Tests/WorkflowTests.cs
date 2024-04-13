@@ -3,7 +3,6 @@ using Dbosoft.Rebus.Operations.Commands;
 using Dbosoft.Rebus.Operations.Events;
 using Dbosoft.Rebus.Operations.Workflow;
 using Microsoft.Extensions.Logging.Abstractions;
-using Rebus.Retry.Simple;
 using Xunit;
 using Xunit.Abstractions;
 

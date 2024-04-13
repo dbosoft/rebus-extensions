@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 
 namespace Dbosoft.Rebus.Operations.Workflow;
 
-#nullable enable
 public abstract class OperationTaskManagerBase : IOperationTaskManager
 {
 

@@ -1,6 +1,5 @@
 using Dbosoft.Rebus.Operations;
 using Dbosoft.Rebus.Operations.Tests;
-using Dbosoft.Rebus.Operations.Workflow;
 using Rebus.Persistence.InMem;
 using Rebus.Routing.TypeBased;
 using Rebus.Transport.InMem;

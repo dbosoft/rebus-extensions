@@ -3,7 +3,6 @@ using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Rebus.Config;
-using Options = Rebus.Config.Options;
 
 namespace Dbosoft.Rebus.Configuration;
 
