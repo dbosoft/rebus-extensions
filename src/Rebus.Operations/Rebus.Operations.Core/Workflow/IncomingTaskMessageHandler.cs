@@ -41,19 +41,10 @@ namespace Dbosoft.Rebus.Operations.Workflow
                 AdditionalData = _messageEnricher.EnrichTaskAcceptedReply(taskMessage),
                 Created = DateTimeOffset.UtcNow
             };
-            var replyAddress = MessageContext.Current.Headers.GetValueOrNull(Headers.ReturnAddress);
 
-            if (replyAddress == null)
-            {
-                _logger.LogWarning($"Operation Workflow {taskMessage.OperationId}/{taskMessage.TaskId}: missing return address");
-            }
-            else
-            {
-                using var replyScope = new RebusTransactionScope();
-                await _bus.Advanced.Routing.Send(replyAddress, reply).ConfigureAwait(false);
-                _logger.LogTrace($"Accepted incoming operation message. Operation id: '{taskMessage.OperationId}'");
-                await replyScope.CompleteAsync().ConfigureAwait(false);
-            }
+            await _bus.Reply(reply).ConfigureAwait(false);
+            _logger.LogTrace($"Accepted incoming operation message. Operation id: '{taskMessage.OperationId}'");
+
 
             await _bus.SendLocal(new OperationTask<T>(taskMessage.Message,
                     taskMessage.OperationId, taskMessage.InitiatingTaskId,
