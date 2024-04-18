@@ -1,4 +1,5 @@
-﻿using Rebus.Transport;
+﻿using Rebus.Subscriptions;
+using Rebus.Transport;
 using Rebus.Transport.InMem;
 using Xunit;
 
@@ -50,14 +51,44 @@ public class DefaultTransportSelectorTests : SelectorTests
             {
                 c.OneWayTransport(selector);
             }, true)
-            .AssertConfigured<ITransport>("Rebus.Transport.InMem.InMemTransport");
+            .AssertConfigured<ITransport>("Rebus.Transport.InMem.InMemTransport")
+            .AssertConfigured<ISubscriptionStorage>("Rebus.Transport.InMem.InMemTransport");
 
 
         ConfigureAndGetContainer(c =>
             {
                 c.Transport(selector, "dummy");
             }, true)
-            .AssertConfigured<ITransport>("Rebus.Transport.InMem.InMemTransport");
+            .AssertConfigured<ITransport>("Rebus.Transport.InMem.InMemTransport")
+            .AssertConfigured<ISubscriptionStorage>("Rebus.Transport.InMem.InMemTransport");
+    }
+
+    [Fact]
+    public void Configures_As_InMemory_WithoutSubscriptionStore()
+    {
+        var deps = SetupDeps(new Dictionary<string, string>
+        {
+            { "bus:type", "inmemory" },
+            { "bus:storeSubscriptions", "false" }
+        });
+
+
+        var selector = new DefaultTransportSelector(new InMemNetwork(), deps.Configuration, deps.Logger);
+
+        ConfigureAndGetContainer(c =>
+            {
+                c.OneWayTransport(selector);
+            }, true)
+            .AssertConfigured<ITransport>("Rebus.Transport.InMem.InMemTransport")
+            .AssertConfigured<ISubscriptionStorage>("Rebus.Persistence.Throwing.DisabledSubscriptionStorage");
+
+
+        ConfigureAndGetContainer(c =>
+            {
+                c.Transport(selector, "dummy");
+            }, true)
+            .AssertConfigured<ITransport>("Rebus.Transport.InMem.InMemTransport")
+            .AssertConfigured<ISubscriptionStorage>("Rebus.Persistence.Throwing.DisabledSubscriptionStorage");
     }
 
     [Fact]
