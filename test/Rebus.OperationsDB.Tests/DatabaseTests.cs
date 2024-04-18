@@ -78,13 +78,13 @@ public class DatabaseTests : IClassFixture<DatabaseTests.DeleteDb>
             .Routing(r => r.TypeBased().AddOperations("workflow"))
             .Options(x =>
             {
-                x.SimpleRetryStrategy(secondLevelRetriesEnabled: true, errorDetailsHeaderMaxLength: 5, maxDeliveryAttempts: 5);
+                x.RetryStrategy(secondLevelRetriesEnabled: true, errorDetailsHeaderMaxLength: 5, maxDeliveryAttempts: 5);
                 x.SetNumberOfWorkers(workers);
                 x.EnableSimpleInjectorUnitOfWork();
             })
             .Logging(x=>x.MicrosoftExtensionsLogging(new XUnitLogger("rebus", _outputHelper, 
                 new XUnitLoggerOptions())))
-            .Subscriptions(c => c.StoreInMemory())
+            //.Subscriptions(c => c.StoreInMemory())
             .Timeouts(x=>x.StoreInMemory())
             .Sagas(s =>
             {

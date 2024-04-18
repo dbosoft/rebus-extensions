@@ -35,7 +35,7 @@ public class DefaultTransportSelector : RebusTransportSelectorBase
                 configurer.UseFileSystem(Path.Combine(path, "transport"), queueName);
                 return;
             case "inmemory":
-                configurer.UseInMemoryTransport(_network, queueName);
+                configurer.UseInMemoryTransport(_network, queueName, false);
                 return;
         }
     }
