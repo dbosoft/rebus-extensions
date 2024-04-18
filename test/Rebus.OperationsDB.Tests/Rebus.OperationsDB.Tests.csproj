@@ -18,7 +18,7 @@
       <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
       <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
       <PackageReference Include="Rebus.Microsoft.Extensions.Logging" Version="3.0.0" />
-      <PackageReference Include="Rebus.TransactionScopes" Version="6.0.0" />
+      <PackageReference Include="Rebus.TransactionScopes" Version="7.0.0" />
       <PackageReference Include="SimpleInjector.Integration.GenericHost" Version="5.4.0" />
     </ItemGroup>
 
