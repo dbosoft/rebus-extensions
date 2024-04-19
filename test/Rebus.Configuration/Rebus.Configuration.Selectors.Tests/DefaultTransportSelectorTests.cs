@@ -64,7 +64,7 @@ public class DefaultTransportSelectorTests : SelectorTests
     }
 
     [Fact]
-    public void Configures_As_InMemory_WithoutSubscriptionStore()
+    public void Configures_As_InMemory_Without_Subscription_Store()
     {
         var deps = SetupDeps(new Dictionary<string, string>
         {

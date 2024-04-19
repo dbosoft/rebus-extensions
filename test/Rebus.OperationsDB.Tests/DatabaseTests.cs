@@ -84,7 +84,6 @@ public class DatabaseTests : IClassFixture<DatabaseTests.DeleteDb>
             })
             .Logging(x=>x.MicrosoftExtensionsLogging(new XUnitLogger("rebus", _outputHelper, 
                 new XUnitLoggerOptions())))
-            //.Subscriptions(c => c.StoreInMemory())
             .Timeouts(x=>x.StoreInMemory())
             .Sagas(s =>
             {

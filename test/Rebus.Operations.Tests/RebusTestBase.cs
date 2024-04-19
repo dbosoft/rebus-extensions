@@ -46,7 +46,6 @@ public abstract class RebusTestBase
                     }
                 })
                 .Sagas(x => x.StoreInMemory())
-                //.Subscriptions(x=>x.StoreInMemory(new InMemorySubscriberStore()))
                 .Logging(x=>x.Use(new RebusTestLogging(_output)))
                 .Create();
 
