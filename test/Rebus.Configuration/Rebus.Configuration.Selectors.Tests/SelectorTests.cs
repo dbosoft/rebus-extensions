@@ -29,7 +29,7 @@ public abstract class SelectorTests
         var configure = Configure.With(someContainerAdapter);
 
         if(!noTransport)
-            configure.Transport(cfg => cfg.UseInMemoryTransport(new InMemNetwork(), "null"));
+            configure.Transport(cfg => cfg.UseInMemoryTransport(new InMemNetwork(), "null", false));
 
         testSetup(configure);
 

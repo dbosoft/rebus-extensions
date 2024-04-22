@@ -35,7 +35,7 @@ public class DefaultTransportSelector : RebusTransportSelectorBase
                 configurer.UseFileSystem(Path.Combine(path, "transport"), queueName);
                 return;
             case "inmemory":
-                configurer.UseInMemoryTransport(_network, queueName);
+                configurer.UseInMemoryTransport(_network, queueName, ShouldStoreSubscriptions());
                 return;
         }
     }
@@ -53,11 +53,20 @@ public class DefaultTransportSelector : RebusTransportSelectorBase
                 configurer.UseFileSystemAsOneWayClient(path);
                 return;
             case "inmemory":
-                configurer.UseInMemoryTransportAsOneWayClient(_network);
+                configurer.UseInMemoryTransportAsOneWayClient(_network, ShouldStoreSubscriptions());
                 return;
         }
     }
 
+    protected bool ShouldStoreSubscriptions()
+    {
+        var value = Configuration[$"{ConfigurationName}:storeSubscriptions"];
+        if(string.IsNullOrWhiteSpace(value))
+            return true;
 
+        if (bool.TryParse(value, out var result))
+            return result;
 
+        throw new InvalidOperationException($"Invalid value for {ConfigurationName}::storeSubscriptions.");
+    }
 }

@@ -35,7 +35,7 @@ public abstract class RebusTestBase
             Configure.With(activator)
                 .Options(o =>
                 {
-                    o.SimpleRetryStrategy(maxDeliveryAttempts: 1, secondLevelRetriesEnabled: true);
+                    o.RetryStrategy(maxDeliveryAttempts: 1, secondLevelRetriesEnabled: true);
                 })
                 .Transport(cfg => cfg.UseInMemoryTransport(rebusNetwork, "main"))
                 .Routing(r =>
@@ -46,7 +46,6 @@ public abstract class RebusTestBase
                     }
                 })
                 .Sagas(x => x.StoreInMemory())
-                .Subscriptions(x=>x.StoreInMemory(new InMemorySubscriberStore()))
                 .Logging(x=>x.Use(new RebusTestLogging(_output)))
                 .Create();
 
