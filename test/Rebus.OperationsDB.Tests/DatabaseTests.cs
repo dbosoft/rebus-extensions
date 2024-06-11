@@ -243,7 +243,32 @@ public class DatabaseTests : IClassFixture<DatabaseTests.DeleteDb>
         
         
     }
-    
+
+    [Theory]
+    [InlineData(1, 1, 5000)]
+    [InlineData(3, 5, 20000)]
+    [InlineData(5, 20, 40000)]
+    public async Task Runs_and_reports_a_workflow_with_parallel_tasks(int workers, int commands, int timeout)
+    {
+        await SetupAndRunWorkflow(workers, timeout, async sp =>
+        {
+            var result = new List<(IOperation?, OperationStatus)>();
+            await using var startContext = sp.GetRequiredService<StateStoreContext>();
+            var dispatcher = sp.GetRequiredService<IOperationDispatcher>();
+
+            foreach (var _ in Enumerable.Range(0, commands))
+            {
+                using var ta = new TransactionScope(TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
+                ta.EnlistRebus();
+                result.Add((await dispatcher.StartNew<ParallelSagaCommand>().ConfigureAwait(false), OperationStatus.Completed));
+                await startContext.SaveChangesAsync().ConfigureAwait(false);
+                ta.Complete();
+                await Task.Delay(10).ConfigureAwait(false);
+            }
+
+            return result;
+        }).ConfigureAwait(false);
+    }
 
     [UsedImplicitly]
     private class DeleteDb

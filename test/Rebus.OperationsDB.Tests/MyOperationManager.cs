@@ -55,6 +55,9 @@ public class MyOperationManager : IOperationManager
         if (model.LastUpdate > timestamp)
             return false;
 
+        if(model.Status is OperationStatus.Completed or OperationStatus.Failed)
+            return false;
+
         model.Status = newStatus;
         model.LastUpdate = timestamp;
         return true;

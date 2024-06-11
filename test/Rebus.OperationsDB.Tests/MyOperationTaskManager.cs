@@ -53,6 +53,9 @@ public class MyOperationTaskManager : IOperationTaskManager
         if (model.LastUpdate > timestamp)
             return false;
 
+        if (model.Status is OperationTaskStatus.Completed or OperationTaskStatus.Failed)
+            return false;
+
         model.Status = newStatus;
         model.LastUpdate = timestamp;
         return true;
