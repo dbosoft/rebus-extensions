@@ -31,11 +31,16 @@ internal class SimpleInjectorContainerAdapter : IContainerAdapter
         ITransactionContext transactionContext)
     {
         var scope = AsyncScopedLifestyle.BeginScope(_container);
+        transactionContext.Items["SI_scope"] = scope;
+
+        var unitOfWork = (IRebusUnitOfWork)((IServiceProvider)_container).GetService(typeof(IRebusUnitOfWork));
+        if (unitOfWork is not null)
+            await unitOfWork.Initialize().ConfigureAwait(false);
+        
+
         if (TryGetInstance<IEnumerable<IHandleMessages<TMessage>>>(_container, out var handlerInstances))
         {
             var handlerList = handlerInstances.ToList();
-            transactionContext.Items["SI_scope"] = scope;
-
             transactionContext.OnDisposed(_ =>
             {
                 // ReSharper disable once SuspiciousTypeConversion.Global
