@@ -31,7 +31,7 @@ public class SimpleInjectorUnitOfWorkTests
     {
         await using var container = ArrangeRebus(o => o.EnableSimpleInjectorUnitOfWork());
         container.Register<IRebusUnitOfWork, TestRebusUnitOfWork>(Lifestyle.Scoped);
-        container.Collection.Append<IHandleMessages<TestMessage>, TestMessageHandler>(Lifestyle.Scoped);
+        container.Verify();
 
         await using var scope = AsyncScopedLifestyle.BeginScope(container);
         var bus = container.GetInstance<IBus>();
@@ -48,7 +48,7 @@ public class SimpleInjectorUnitOfWorkTests
     public async Task WorksWithoutUnitOfWork()
     {
         await using var container = ArrangeRebus(_ => { });
-        container.Collection.Append<IHandleMessages<TestMessage>, TestMessageHandler>(Lifestyle.Scoped);
+        container.Verify();
 
         await using var scope = AsyncScopedLifestyle.BeginScope(container);
         var bus = container.GetInstance<IBus>();
@@ -68,6 +68,8 @@ public class SimpleInjectorUnitOfWorkTests
         var rebusNetwork = new InMemNetwork();
 
         container.RegisterSingleton<TestMessageCollector>();
+        container.Collection.Append<IHandleMessages<TestMessage>, TestMessageHandler>(Lifestyle.Scoped);
+
         container.ConfigureRebus(configurer =>
         {
             return configurer
