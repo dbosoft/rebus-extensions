@@ -1,21 +1,10 @@
 namespace Dbosoft.Rebus.SimpleInjector.Tests;
 
-public class TestRebusUnitOfWork : IRebusUnitOfWork
+public sealed class TestRebusUnitOfWork : IRebusUnitOfWork
 {
     public Task Initialize()
     {
         return Task.CompletedTask;
-    }
-
-
-    public ValueTask DisposeAsync()
-    {
-        return ValueTask.CompletedTask;
-    }
-
-    public void Dispose()
-    {
-        
     }
 
     public Task Commit()
@@ -26,5 +15,15 @@ public class TestRebusUnitOfWork : IRebusUnitOfWork
     public Task Rollback()
     {
         return Task.CompletedTask;
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        return ValueTask.CompletedTask;
+    }
+
+    public void Dispose()
+    {
+
     }
 }
