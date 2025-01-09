@@ -38,6 +38,7 @@ public class DatabaseTests : IClassFixture<DatabaseTests.DeleteDb>
     private async Task SetupAndRunWorkflow(
         int workers, 
         int timeout,
+        bool useTransactions,
         Func<IServiceProvider, Task<IEnumerable<(IOperation?, OperationStatus)>>> starter,
         Func<IServiceProvider,IOperation?, Task>? validator = null)
     
@@ -71,7 +72,14 @@ public class DatabaseTests : IClassFixture<DatabaseTests.DeleteDb>
         }
         
         container.Register(() => new StateStoreContext(contextOptions), Lifestyle.Scoped);
-        container.Register<IRebusUnitOfWork, StateStoreDbUnitOfWork>(Lifestyle.Scoped);
+        if (useTransactions)
+        {
+            container.Register<IRebusUnitOfWork, StateStoreDbUnitOfWorkWithTransaction>(Lifestyle.Scoped);
+        }
+        else
+        {
+            container.Register<IRebusUnitOfWork, StateStoreDbUnitOfWork>(Lifestyle.Scoped);
+        }
         
         container.ConfigureRebus(configurer => configurer
             .Transport(t => t.UseInMemoryTransport(inMemNetwork, "workflow"))
@@ -119,7 +127,7 @@ public class DatabaseTests : IClassFixture<DatabaseTests.DeleteDb>
 
         }
         
-        var cancelTokenSource = new CancellationTokenSource(timeout);
+        using var cancelTokenSource = new CancellationTokenSource(timeout);
         var pendingOperations = operations.Select(x=>x.Item1?.Id).ToList();
         
         while (!cancelTokenSource.IsCancellationRequested)
@@ -187,13 +195,14 @@ public class DatabaseTests : IClassFixture<DatabaseTests.DeleteDb>
     }
     
     [Theory]
-    [InlineData(1, 1, 5000)]
-    [InlineData(1, 5, 5000)]
-    [InlineData(3, 5, 10000)]
-    [InlineData(2, 10, 10000)]
-    public async Task Runs_and_reports_a_simple_Workflow(int workers, int commands, int timeout)
+    [InlineData(1, 1, 5000, false)]
+    [InlineData(1, 5, 5000, false)]
+    [InlineData(3, 5, 10000, false)]
+    [InlineData(2, 10, 10000, false)]
+    [InlineData(3, 5, 60000, true)]
+    public async Task Runs_and_reports_a_simple_Workflow(int workers, int commands, int timeout, bool useTransactions)
     {
-        await SetupAndRunWorkflow(workers,timeout, async sp =>
+        await SetupAndRunWorkflow(workers, timeout, useTransactions, async sp =>
         {
             await using var startContext = sp.GetRequiredService<StateStoreContext>();
             var dispatcher = sp.GetRequiredService<IOperationDispatcher>();
@@ -216,12 +225,13 @@ public class DatabaseTests : IClassFixture<DatabaseTests.DeleteDb>
     }
     
     [Theory]
-    [InlineData(1, 1, 5000)]
-    [InlineData(3, 5, 20000)]
-    [InlineData(5, 20, 40000)]
-    public async Task Runs_and_reports_a_complex_Workflow(int workers, int commands, int timeout)
+    [InlineData(1, 1, 5000, false)]
+    [InlineData(3, 5, 20000, false)]
+    [InlineData(5, 20, 40000, false)]
+    [InlineData(3, 5, 60000, true)]
+    public async Task Runs_and_reports_a_complex_Workflow(int workers, int commands, int timeout, bool useTransactions)
     {
-        await SetupAndRunWorkflow(workers,timeout, async sp =>
+        await SetupAndRunWorkflow(workers, timeout, useTransactions, async sp =>
         {
             var result = new List<(IOperation?, OperationStatus)>();
             await using var startContext = sp.GetRequiredService<StateStoreContext>();

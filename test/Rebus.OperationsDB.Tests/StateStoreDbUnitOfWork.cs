@@ -6,7 +6,6 @@ namespace Dbosoft.Rebus.OperationsDB.Tests;
 public sealed class StateStoreDbUnitOfWork : IRebusUnitOfWork
 {
     private readonly StateStoreContext _dbContext;
-    private IDbContextTransaction? _dbTransaction;
     private readonly ILogger _logger;
 
     public StateStoreDbUnitOfWork(StateStoreContext dbContext, ILogger logger)
@@ -15,37 +14,19 @@ public sealed class StateStoreDbUnitOfWork : IRebusUnitOfWork
         _logger = logger;
     }
 
-    public async Task Initialize()
-    {
-        _dbTransaction = await _dbContext.Database.BeginTransactionAsync().ConfigureAwait(false);
-    }
+    public Task Initialize() => Task.CompletedTask;
 
     public async Task Commit()
     {
-        if (_dbTransaction is null)
-            throw new InvalidOperationException("The unit of work has not been initialized.");
-
         _logger.LogInformation("COMMIT of State Store");
         await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-        await _dbTransaction.CommitAsync().ConfigureAwait(false);
     }
 
-    public async Task Rollback()
-    {
-        if (_dbTransaction is null)
-            throw new InvalidOperationException("The unit of work has not been initialized.");
-        
-        await _dbTransaction.RollbackAsync().ConfigureAwait(false);
-    }
+    public Task Rollback() => Task.CompletedTask;
 
-    public async ValueTask DisposeAsync()
-    {
-        if (_dbTransaction is not null)
-            await _dbTransaction.DisposeAsync().ConfigureAwait(false);
-    }
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
     public void Dispose()
     {
-        _dbTransaction?.Dispose();
     }
 }
