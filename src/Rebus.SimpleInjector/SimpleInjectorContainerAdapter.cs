@@ -36,11 +36,11 @@ internal class SimpleInjectorContainerAdapter : IContainerAdapter
 
         // In difference to the default implementation by Rebus, we manage the unit of work with
         // SimpleInjector. Hence, we can only initialize the unit of work after the scope has
-        // been created. We use GetService() instead of GetInstance() as it returns null when the
-        // service not registered. The use of IRebusUnitOfWork is optional.
-        var unitOfWork = (IRebusUnitOfWork)((IServiceProvider)_container).GetService(typeof(IRebusUnitOfWork));
-        if (unitOfWork is not null)
+        // been created. The use of IRebusUnitOfWork is optional.
+        if (TryGetInstance<IRebusUnitOfWork>(_container, out var unitOfWork))
+        {
             await unitOfWork.Initialize().ConfigureAwait(false);
+        }
 
         return TryGetInstance<IEnumerable<IHandleMessages<TMessage>>>(_container, out var handlerInstances)
             ? handlerInstances.ToList()
