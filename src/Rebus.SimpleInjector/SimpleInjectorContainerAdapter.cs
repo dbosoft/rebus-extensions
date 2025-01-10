@@ -31,25 +31,20 @@ internal class SimpleInjectorContainerAdapter : IContainerAdapter
         ITransactionContext transactionContext)
     {
         var scope = AsyncScopedLifestyle.BeginScope(_container);
-        if (TryGetInstance<IEnumerable<IHandleMessages<TMessage>>>(_container, out var handlerInstances))
+        transactionContext.Items["SI_scope"] = scope;
+        transactionContext.OnDisposed(_ => scope.Dispose());
+
+        // In difference to the default implementation by Rebus, we manage the unit of work with
+        // SimpleInjector. Hence, we can only initialize the unit of work after the scope has
+        // been created. The use of IRebusUnitOfWork is optional.
+        if (TryGetInstance<IRebusUnitOfWork>(_container, out var unitOfWork))
         {
-            var handlerList = handlerInstances.ToList();
-            transactionContext.Items["SI_scope"] = scope;
-
-            transactionContext.OnDisposed(_ =>
-            {
-                // ReSharper disable once SuspiciousTypeConversion.Global
-                foreach (var disposable in handlerList.OfType<IDisposable>()) disposable.Dispose();
-
-                scope.Dispose();
-            });
-
-            return handlerList;
+            await unitOfWork.Initialize().ConfigureAwait(false);
         }
 
-        await scope.DisposeAsync();
-
-        return Array.Empty<IHandleMessages<TMessage>>();
+        return TryGetInstance<IEnumerable<IHandleMessages<TMessage>>>(_container, out var handlerInstances)
+            ? handlerInstances.ToList()
+            : Array.Empty<IHandleMessages<TMessage>>();
     }
 
     public void SetBus(IBus bus)

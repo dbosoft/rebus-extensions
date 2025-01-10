@@ -21,4 +21,12 @@ public class RebusUnitOfWorkAdapter
 
         await scope.GetInstance<IRebusUnitOfWork>().Commit().ConfigureAwait(false);
     }
+
+    public async Task Rollback(IMessageContext context)
+    {
+        var scope = context.TransactionContext.Items["SI_scope"] as Scope;
+        Debug.Assert(scope != null);
+
+        await scope.GetInstance<IRebusUnitOfWork>().Rollback().ConfigureAwait(false);
+    }
 }

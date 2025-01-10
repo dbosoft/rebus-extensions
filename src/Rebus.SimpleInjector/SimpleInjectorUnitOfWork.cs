@@ -8,7 +8,7 @@ public static class SimpleInjectorUnitOfWork
     public static void EnableSimpleInjectorUnitOfWork(
         this OptionsConfigurer configurer)
     {
-        configurer.EnableAsyncUnitOfWork(Create, Commit, dispose: Dispose);
+        configurer.EnableAsyncUnitOfWork(Create, Commit, rollback: Rollback, dispose: Dispose);
     }
 
     private static Task<RebusUnitOfWorkAdapter> Create(IMessageContext context)
@@ -23,6 +23,11 @@ public static class SimpleInjectorUnitOfWork
     private static Task Commit(IMessageContext context, RebusUnitOfWorkAdapter uow)
     {
         return uow.Commit(context);
+    }
+
+    private static Task Rollback(IMessageContext context, RebusUnitOfWorkAdapter uow)
+    {
+        return uow.Rollback(context);
     }
 
     private static Task Dispose(IMessageContext context, RebusUnitOfWorkAdapter uow)
