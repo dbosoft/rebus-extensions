@@ -1,4 +1,7 @@
-﻿using Rebus.Activation;
+﻿// Based on https://github.com/rebus-org/Rebus.SimpleInjector
+// Copyright (c) Mogens Heller Grabe
+// Licensed under MIT license https://github.com/rebus-org/Rebus.SimpleInjector/blob/master/LICENSE.md
+using Rebus.Activation;
 using Rebus.Bus;
 using Rebus.Handlers;
 using Rebus.Transport;
