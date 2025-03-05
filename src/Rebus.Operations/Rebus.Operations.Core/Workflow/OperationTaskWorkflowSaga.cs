@@ -75,9 +75,12 @@ public abstract class OperationTaskWorkflowSaga<TMessage, TSagaData> : Saga<TSag
     {
         if (message.InitiatingTaskId != Data.SagaTaskId)
             return;
-            
+
         if (message.OperationFailed)
+        {
             await Fail(message.GetMessage(WorkflowEngine.WorkflowOptions.JsonSerializerOptions)).ConfigureAwait(false);
+            return;
+        }
 
         await completedFunc().ConfigureAwait(false);
     }
@@ -90,12 +93,15 @@ public abstract class OperationTaskWorkflowSaga<TMessage, TSagaData> : Saga<TSag
             return;
 
         if (message.OperationFailed)
+        {
             await Fail(message.GetMessage(WorkflowEngine.WorkflowOptions.JsonSerializerOptions)).ConfigureAwait(false);
-        else
-            await completedFunc(
-                message.GetMessage(WorkflowEngine.WorkflowOptions.JsonSerializerOptions) as TOpMessage
-                ?? throw new InvalidOperationException(
-                    $"Message {typeof(T)} has not returned a result of type {typeof(TOpMessage)}.")).ConfigureAwait(false);
+            return;
+        }
+
+        if (message.GetMessage(WorkflowEngine.WorkflowOptions.JsonSerializerOptions) is not TOpMessage opMessage)
+            throw new InvalidOperationException($"Message {typeof(T)} has not returned a result of type {typeof(TOpMessage)}.");
+
+        await completedFunc(opMessage).ConfigureAwait(false);
     }
 
 
