@@ -26,9 +26,9 @@ public abstract class RebusTestBase
         IMessageEnricher? messageEnricher = default)
     {
         var rebusNetwork = new InMemNetwork();
-
-        var opManager = new TestOperationManager();
-        var taskManager = new TestTaskManager();
+        var store = new TestOperationStore();
+        var opManager = new TestOperationManager(store);
+        var taskManager = new TestTaskManager(store);
         
         var activator = new BuiltinHandlerActivator();
         var busStarter =

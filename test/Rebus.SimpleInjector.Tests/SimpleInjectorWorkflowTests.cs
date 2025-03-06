@@ -12,6 +12,8 @@ namespace Dbosoft.Rebus.SimpleInjector.Tests;
 
 public class SimpleInjectorWorkflowTests : SimpleInjectorTestBase
 {
+    private readonly TestOperationStore _testStore = new();
+
 
     public SimpleInjectorWorkflowTests(ITestOutputHelper output)
         : base(output)
@@ -29,7 +31,7 @@ public class SimpleInjectorWorkflowTests : SimpleInjectorTestBase
         var sc = new ServiceCollection();
         sc.AddLogging();
         
-        var container = new Container();
+        await using var container = new Container();
         container.Options.DefaultScopedLifestyle = new AsyncScopedLifestyle();
         sc.AddSimpleInjector(container, cfg => cfg.AddLogging());
 
@@ -38,8 +40,7 @@ public class SimpleInjectorWorkflowTests : SimpleInjectorTestBase
         container.Collection.Append(typeof(IHandleMessages<>), typeof(StepOneCommandHandler), Lifestyle.Scoped);
         container.Collection.Append(typeof(IHandleMessages<>), typeof(StepTwoCommandHandler), Lifestyle.Scoped);
         
-        container.Register<TestOperationManager>(Lifestyle.Scoped);
-        container.Register<TestTaskManager>(Lifestyle.Scoped);
+        container.RegisterInstance(_testStore);
         container.Register<StepOneCommandHandler>(Lifestyle.Scoped);
         container.Register<StepTwoCommandHandler>(Lifestyle.Scoped);
         
@@ -48,8 +49,6 @@ public class SimpleInjectorWorkflowTests : SimpleInjectorTestBase
         
         container.Verify();
 
-        TestOperationManager.Reset();
-        TestTaskManager.Reset();
         StepOneCommandHandler.Called = false;
         StepTwoCommandHandler.Called = false;
 
@@ -65,13 +64,16 @@ public class SimpleInjectorWorkflowTests : SimpleInjectorTestBase
         Assert.True(StepOneCommandHandler.Called);
         Assert.True(StepTwoCommandHandler.Called);
         
-        Assert.Single(TestOperationManager.Operations);
-        Assert.Equal(3, TestTaskManager.Tasks.Count);
-        Assert.Equal(OperationStatus.Completed, TestOperationManager.Operations.First().Value.Status);
-
-        foreach (var taskModel in TestTaskManager.Tasks)
+        var allOperations = _testStore.Operations.Values.ToList();
+        Assert.Single(allOperations);
+        Assert.Equal(OperationStatus.Completed, allOperations[0].Status);
+        
+        var allTasks = _testStore.Tasks.Values.ToList();
+        Assert.Equal(3, allTasks.Count);
+        
+        foreach (var taskModel in allTasks)
         {
-            Assert.Equal(OperationTaskStatus.Completed, taskModel.Value.Status);
+            Assert.Equal(OperationTaskStatus.Completed, taskModel.Status);
         }
     }
 

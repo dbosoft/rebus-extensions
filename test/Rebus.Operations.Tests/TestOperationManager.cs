@@ -1,63 +1,65 @@
+using System.Collections.Concurrent;
 using Dbosoft.Rebus.Operations.Workflow;
 
 namespace Dbosoft.Rebus.Operations.Tests;
 
-public class TestOperationManager : OperationManagerBase
+public class TestOperationManager(TestOperationStore store): OperationManagerBase
 {
-    public static readonly Dictionary<Guid, TestOperationModel> Operations = new();
-    public static readonly Dictionary<Guid, List<object>> Progress = new();
-
-    public static void Reset()
-    {
-        Operations.Clear();
-        Progress.Clear();
-    }
-    
     public override ValueTask<IOperation?> GetByIdAsync(Guid operationId)
     {
-        return ValueTask.FromResult( 
-            Operations.TryGetValue(operationId, out var operation) 
-                ? operation as IOperation : null);
-
+        store.Operations.TryGetValue(operationId, out var operation);
+        return ValueTask.FromResult<IOperation?>(operation);
     }
 
-    public override ValueTask<IOperation> GetOrCreateAsync(Guid operationId, object command,
-        DateTimeOffset created,
-        object? additionalData, IDictionary<string,string>? additionalHeaders)
+    public override ValueTask<IOperation> GetOrCreateAsync(
+        Guid operationId,
+        object command,
+        DateTimeOffset timestamp,
+        object? additionalData,
+        IDictionary<string,string>? additionalHeaders)
     {
-        if (Operations.ContainsKey(operationId))
-            return GetByIdAsync(operationId)!;
+        var operation = store.Operations.GetOrAdd(
+            operationId,
+            id => new TestOperationModel()
+            {
+                Id = id,
+            });
         
-        var op = new TestOperationModel
-        {
-            Id = operationId
-        };
-        Operations.Add(operationId, op);
-        
-        return new ValueTask<IOperation>(op);
+        return ValueTask.FromResult<IOperation>(operation);
     }
 
-    public override ValueTask<bool> TryChangeStatusAsync(IOperation operation, 
+    public override ValueTask<bool> TryChangeStatusAsync(
+        IOperation operation, 
         OperationStatus newStatus, 
         DateTimeOffset timestamp,
-        object? additionalData, IDictionary<string,string>? messageHeaders)
+        object? additionalData,
+        IDictionary<string,string>? messageHeaders)
     {
-        if (!Operations.ContainsKey(operation.Id))
-            return new ValueTask<bool>(false);
+        if (!store.Operations.TryGetValue(operation.Id, out var operationModel))
+            return ValueTask.FromResult(false);
 
-        Operations[operation.Id].Status = newStatus;
+        lock (operationModel)
+        {
+            operationModel.Status = newStatus;
+        }
 
-        return new ValueTask<bool>(true);
+        return ValueTask.FromResult(true);
     }
 
-    public override ValueTask AddProgressAsync(Guid progressId, DateTimeOffset timestamp, IOperation operation, IOperationTask task,
-        object? data, IDictionary<string,string>? messageHeaders)
+    public override ValueTask AddProgressAsync(
+        Guid progressId,
+        DateTimeOffset timestamp,
+        IOperation operation,
+        IOperationTask task,
+        object? data,
+        IDictionary<string,string>? messageHeaders)
     {
-        if(!Progress.ContainsKey(progressId))
-            Progress.Add(operation.Id, new List<object>());
-     
-        if(data!= null)
-            Progress[operation.Id].Add(data);
+        var progress = store.Progress.GetOrAdd(
+            progressId,
+            _ => new ConcurrentQueue<object?>());
+
+        progress.Enqueue(data);
+
         return ValueTask.CompletedTask;
     }
 }

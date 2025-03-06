@@ -1,48 +1,56 @@
+using System.Collections.Concurrent;
 using Dbosoft.Rebus.Operations.Workflow;
 
 namespace Dbosoft.Rebus.Operations.Tests;
 
-public class TestTaskManager : OperationTaskManagerBase
+public class TestTaskManager(TestOperationStore store) : OperationTaskManagerBase
 {
-    public static readonly Dictionary<Guid, TestOperationTaskModel> Tasks = new();
-
-    public static void Reset()
-    {
-        Tasks.Clear();
-    }
-    
     public override ValueTask<IOperationTask?> GetByIdAsync(Guid taskId)
     {
-        return ValueTask.FromResult( 
-            Tasks.TryGetValue(taskId, out var task) 
-                ? task as IOperationTask : null);
-
+        store.Tasks.TryGetValue(taskId, out var task);
+        return ValueTask.FromResult<IOperationTask?>(task);
     }
 
-    public override ValueTask<IOperationTask> GetOrCreateAsync(IOperation operation, 
-        object command, DateTimeOffset created, Guid taskId, Guid parentTaskId)
+    public override ValueTask<IOperationTask> GetOrCreateAsync(
+        IOperation operation, 
+        object command,
+        DateTimeOffset created,
+        Guid taskId,
+        Guid parentTaskId)
     {
-        if (Tasks.ContainsKey(taskId))
-            return GetByIdAsync(taskId)!;
+        var task = store.Tasks.GetOrAdd(
+            taskId,
+            new TestOperationTaskModel
+            {
+                Id = taskId,
+                OperationId = operation.Id,
+                InitiatingTaskId = parentTaskId,
+                Status = OperationTaskStatus.Queued
+            });
+
+        if (task.OperationId != operation.Id)
+            throw new InvalidOperationException("Task already exists for another operation");
+
+        if (task.InitiatingTaskId != parentTaskId)
+            throw new InvalidOperationException("Task already exists with a different parent");
         
-        var task = new TestOperationTaskModel
-        {
-            Id = taskId,
-            OperationId = operation.Id,
-            InitiatingTaskId = parentTaskId,
-            Status = OperationTaskStatus.Queued
-        };
-        Tasks.Add(taskId, task);
         return new ValueTask<IOperationTask>(task);
     }
 
-    public override ValueTask<bool> TryChangeStatusAsync(IOperationTask task, OperationTaskStatus newStatus, DateTimeOffset created, object? additionalData)
+    public override ValueTask<bool> TryChangeStatusAsync(
+        IOperationTask task,
+        OperationTaskStatus newStatus,
+        DateTimeOffset timestamp,
+        object? additionalData)
     {
-        if (!Tasks.ContainsKey(task.Id))
-            return new ValueTask<bool>(false);
+        if (!store.Tasks.TryGetValue(task.Id, out var taskModel))
+            return ValueTask.FromResult(false);
 
-        Tasks[task.Id].Status = newStatus;
+        lock (taskModel)
+        {
+            taskModel.Status = newStatus;
+        }
 
-        return new ValueTask<bool>(true);
+        return ValueTask.FromResult(true);
     }
 }
