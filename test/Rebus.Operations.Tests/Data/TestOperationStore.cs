@@ -6,15 +6,15 @@ public class TestOperationStore
 {
     public ConcurrentDictionary<Guid, TestOperationModel> Operations { get; } = new();
 
-    public ConcurrentDictionary<Guid, TestProgressModel> Progress { get; } = new();
+    public ConcurrentDictionary<Guid, TestOperationProgressModel> Progress { get; } = new();
 
-    public ConcurrentDictionary<Guid, TestOperationTaskModel> Tasks { get; }= new();
+    public ConcurrentDictionary<Guid, TestOperationTaskModel> Tasks { get; } = new();
 
     public IList<TestOperationModel> AllOperations => Operations.Values
         .OrderBy(o => o.CreatedAt)
         .ToList();
 
-    public IList<TestProgressModel> AllProgress => Progress.Values
+    public IList<TestOperationProgressModel> AllProgress => Progress.Values
         .OrderBy(p => p.Timestamp)
         .ToList();
 

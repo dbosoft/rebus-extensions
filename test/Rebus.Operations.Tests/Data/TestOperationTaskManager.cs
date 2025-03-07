@@ -2,7 +2,7 @@ using Dbosoft.Rebus.Operations.Workflow;
 
 namespace Dbosoft.Rebus.Operations.Tests.Data;
 
-public class TestTaskManager(TestOperationStore store) : OperationTaskManagerBase
+public class TestOperationTaskManager(TestOperationStore store) : OperationTaskManagerBase
 {
     public override ValueTask<IOperationTask?> GetByIdAsync(Guid taskId)
     {

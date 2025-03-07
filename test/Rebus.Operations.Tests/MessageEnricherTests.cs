@@ -9,13 +9,13 @@ using Xunit.Abstractions;
 
 namespace Dbosoft.Rebus.Operations.Tests;
 
-public class DispatchAndTypeBasedRoutingMessageEnricherTests(
+public class PublishAndTypeBasedRoutingMessageEnricherTests(
     ITestOutputHelper output)
     : MessageEnricherTests(output, WorkflowEventDispatchMode.Publish, true)
 {
 }
 
-public class DispatchAndExplicitRoutingMessageEnricherTests(
+public class PublishsAndExplicitRoutingMessageEnricherTests(
     ITestOutputHelper output)
     : MessageEnricherTests(output, WorkflowEventDispatchMode.Publish, false)
 {

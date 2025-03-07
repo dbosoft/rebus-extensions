@@ -1,6 +1,6 @@
 ﻿namespace Dbosoft.Rebus.Operations.Tests.Data;
 
-public class TestProgressModel
+public class TestOperationProgressModel
 {
     public DateTimeOffset Timestamp { get; set; }
 

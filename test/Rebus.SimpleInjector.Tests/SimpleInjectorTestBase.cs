@@ -32,7 +32,7 @@ public abstract class SimpleInjectorTestBase
             EventDestination = useTypeBasedRouting ? null : "main",
             OperationsDestination = useTypeBasedRouting ? null : "main",
         });
-        container.AddRebusOperationsHandlers<TestOperationManager, TestTaskManager>();
+        container.AddRebusOperationsHandlers<TestOperationManager, TestOperationTaskManager>();
         container.ConfigureRebus(configurer =>
         {
             return configurer

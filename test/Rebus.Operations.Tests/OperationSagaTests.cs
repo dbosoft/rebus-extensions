@@ -8,13 +8,13 @@ using Xunit.Abstractions;
 
 namespace Dbosoft.Rebus.Operations.Tests;
 
-public class DispatchAndTypeBasedRoutingOperationSagaTests(
+public class PublishAndTypeBasedRoutingOperationSagaTests(
     ITestOutputHelper output)
     : OperationSagaTests(output, WorkflowEventDispatchMode.Publish, true)
 {
 }
 
-public class DispatchAndExplicitRoutingOperationSagaTests(
+public class PublishAndExplicitRoutingOperationSagaTests(
     ITestOutputHelper output)
     : OperationSagaTests(output, WorkflowEventDispatchMode.Publish, false)
 {
@@ -132,7 +132,7 @@ public abstract class OperationSagaTests(
     }
 
     [Fact]
-    public async Task Command_without_response_fails_with_error()
+    public async Task Command_without_response_error_is_reported()
     {
         AddTaskHandler<WithoutResponseCommand, FailWithErrorHandler<WithoutResponseCommand>>();
         AddTaskHandler<WithResponseCommand, WithResponseCommandHandler>();
@@ -170,7 +170,7 @@ public abstract class OperationSagaTests(
     }
 
     [Fact]
-    public async Task Command_without_response_fails_with_exception()
+    public async Task Command_without_response_exception_is_reported()
     {
         AddTaskHandler<WithoutResponseCommand, FailWithExceptionHandler<WithoutResponseCommand>>();
         AddTaskHandler<WithResponseCommand, WithResponseCommandHandler>();
@@ -208,7 +208,7 @@ public abstract class OperationSagaTests(
     }
 
     [Fact]
-    public async Task Command_with_response_fails_with_error()
+    public async Task Command_with_response_error_is_reported()
     {
         AddTaskHandler<WithoutResponseCommand, WithoutResponseCommandHandler>();
         AddTaskHandler<WithResponseCommand, FailWithErrorHandler<WithResponseCommand>>();
@@ -257,7 +257,7 @@ public abstract class OperationSagaTests(
     }
 
     [Fact]
-    public async Task Command_with_response_fails_with_exception()
+    public async Task Command_with_response_exception_is_reported()
     {
         AddTaskHandler<WithoutResponseCommand, WithoutResponseCommandHandler>();
         AddTaskHandler<WithResponseCommand, FailWithExceptionHandler<WithResponseCommand>>();
@@ -306,7 +306,7 @@ public abstract class OperationSagaTests(
     }
 
     [Fact]
-    public async Task Saga_fails_initialization_with_error()
+    public async Task Saga_initialization_error_is_reported()
     {
         AddSaga<SagaCommand, FailWithErrorSaga, FailWithErrorSagaData>();
 
@@ -336,7 +336,7 @@ public abstract class OperationSagaTests(
     }
 
     [Fact]
-    public async Task Saga_fails_initialization_with_exception()
+    public async Task Saga_initialization_exception_is_reported()
     {
         AddSaga<SagaCommand, FailWithExceptionSaga, FailWithExceptionSagaData>();
 

@@ -28,7 +28,6 @@ public abstract class RebusTestBase : IDisposable
     private readonly IOperationManager _operationManager;
     private readonly IOperationDispatcher _operationDispatcher;
 
-
     protected RebusTestBase(
         ITestOutputHelper output,
         WorkflowEventDispatchMode dispatchMode,
@@ -46,7 +45,7 @@ public abstract class RebusTestBase : IDisposable
         _dispatchMode = dispatchMode;
         _messageEnricher = messageEnricher;
         _operationManager = new TestOperationManager(Store);
-        var taskManager = new TestTaskManager(Store);
+        var taskManager = new TestOperationTaskManager(Store);
         var workflowOptions = new WorkflowOptions
         {
             DispatchMode = dispatchMode,

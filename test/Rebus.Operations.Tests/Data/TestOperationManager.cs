@@ -59,7 +59,7 @@ public class TestOperationManager(TestOperationStore store): OperationManagerBas
     {
         store.Progress.TryAdd(
             progressId,
-            new TestProgressModel
+            new TestOperationProgressModel
             {
                 Timestamp = timestamp,
                 Data = data is JsonElement e ? e.GetString() : null,
