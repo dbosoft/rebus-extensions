@@ -1,7 +1,6 @@
-using System.Collections.Concurrent;
 using Dbosoft.Rebus.Operations.Workflow;
 
-namespace Dbosoft.Rebus.Operations.Tests;
+namespace Dbosoft.Rebus.Operations.Tests.Data;
 
 public class TestTaskManager(TestOperationStore store) : OperationTaskManagerBase
 {
@@ -25,7 +24,8 @@ public class TestTaskManager(TestOperationStore store) : OperationTaskManagerBas
                 Id = taskId,
                 OperationId = operation.Id,
                 InitiatingTaskId = parentTaskId,
-                Status = OperationTaskStatus.Queued
+                Status = OperationTaskStatus.Queued,
+                CreatedAt = created,
             });
 
         if (task.OperationId != operation.Id)

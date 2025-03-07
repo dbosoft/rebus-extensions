@@ -7,24 +7,25 @@ using System.Threading.Tasks;
 
 namespace Dbosoft.Rebus.Operations.Tests;
 
-public class TestTracer
+public class TestTrace
 {
-    private readonly ConcurrentQueue<TestTrace> _traces = new ();
+    private readonly ConcurrentQueue<TestTraceEntry> _traces = new ();
 
-    public IList<TestTrace> Traces => _traces.ToList();
+    public IList<TestTraceEntry> Traces => _traces.ToList();
 
-    public void Trace(object handler, string method, object message)
+    public void Trace(object handler, string method, object message, object? data = null)
     {
-        Trace(handler.GetType(), method, message.GetType());
+        Trace(handler.GetType(), method, message.GetType(), data);
     }
 
-    public void Trace(Type type, string method, Type message)
+    public void Trace(Type type, string method, Type message, object? data = null)
     {
-        _traces.Enqueue(new TestTrace(type, method, message));
+        _traces.Enqueue(new TestTraceEntry(type, method, message, data));
     }
 }
 
-public record TestTrace(
+public record TestTraceEntry(
     Type Handler,
     string Method,
-    Type Message);
+    Type Message,
+    object? Data);

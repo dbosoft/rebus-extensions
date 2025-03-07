@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace Dbosoft.Rebus.Operations.Tests.Commands;
 
-public class StepWithResponseCommandResponse
+public class SagaCommand
 {
-    public string Data { get; set; } = "";
 }

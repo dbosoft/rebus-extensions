@@ -1,7 +1,7 @@
-using System.Collections.Concurrent;
+using System.Text.Json;
 using Dbosoft.Rebus.Operations.Workflow;
 
-namespace Dbosoft.Rebus.Operations.Tests;
+namespace Dbosoft.Rebus.Operations.Tests.Data;
 
 public class TestOperationManager(TestOperationStore store): OperationManagerBase
 {
@@ -23,6 +23,8 @@ public class TestOperationManager(TestOperationStore store): OperationManagerBas
             id => new TestOperationModel()
             {
                 Id = id,
+                CreatedAt = timestamp,
+                Data = additionalData,
             });
         
         return ValueTask.FromResult<IOperation>(operation);
@@ -41,6 +43,7 @@ public class TestOperationManager(TestOperationStore store): OperationManagerBas
         lock (operationModel)
         {
             operationModel.Status = newStatus;
+            operationModel.Data = additionalData;
         }
 
         return ValueTask.FromResult(true);
@@ -54,11 +57,13 @@ public class TestOperationManager(TestOperationStore store): OperationManagerBas
         object? data,
         IDictionary<string,string>? messageHeaders)
     {
-        var progress = store.Progress.GetOrAdd(
+        store.Progress.TryAdd(
             progressId,
-            _ => new ConcurrentQueue<object?>());
-
-        progress.Enqueue(data);
+            new TestProgressModel
+            {
+                Timestamp = timestamp,
+                Data = data is JsonElement e ? e.GetString() : null,
+            });
 
         return ValueTask.CompletedTask;
     }

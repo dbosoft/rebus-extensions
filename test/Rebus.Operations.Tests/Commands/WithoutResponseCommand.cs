@@ -6,6 +6,6 @@ using System.Threading.Tasks;
 
 namespace Dbosoft.Rebus.Operations.Tests.Commands;
 
-public class StepWithResponseCommand
+public class WithoutResponseCommand
 {
 }

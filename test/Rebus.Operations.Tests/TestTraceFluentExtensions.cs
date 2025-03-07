@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
 
 namespace Dbosoft.Rebus.Operations.Tests;
 
-public static class TestTraceFluentExtensions
+public static class TestTraceEntryFluentExtensions
 {
     public static void ShouldMatch(
-        this TestTrace trace,
+        this TestTraceEntry trace,
         Type handlerType,
         string methodName,
         Type messageType)
