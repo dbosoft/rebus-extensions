@@ -35,7 +35,7 @@ public abstract class OperationTaskDispatcherBase : IOperationTaskDispatcher
 
     public ValueTask<IOperationTask?> StartNew(Guid operationId, Guid initiatingTaskId, Type commandType, object? additionalData = default, IDictionary<string,string>? additionalHeaders = null)
     {
-        return StartTask(operationId, initiatingTaskId, commandType, additionalData, additionalHeaders);
+        return StartTask(operationId, initiatingTaskId, Activator.CreateInstance(commandType), additionalData, additionalHeaders);
     }
 
     protected abstract ValueTask<(IOperationTask, object)> CreateTask(Guid operationId, Guid initiatingTaskId, object command, DateTimeOffset created, object? additionalData, IDictionary<string,string>? additionalHeaders);
