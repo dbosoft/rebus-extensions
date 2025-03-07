@@ -2,7 +2,7 @@
 
 namespace Dbosoft.Rebus.Operations.Tests;
 
-public static class TestTraceEntryFluentExtensions
+public static class TestTraceEntryExtensions
 {
     public static void ShouldMatch(
         this TestTraceEntry trace,
