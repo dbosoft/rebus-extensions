@@ -98,7 +98,7 @@ public abstract class OperationSagaTests(
         Store.AllTasks.Should().AllSatisfy(t => t.Status.Should().Be(OperationTaskStatus.Completed));
 
         Store.AllProgress.Should().SatisfyRespectively(
-            p => p.Data.Should().BeOfType<string>().Which.Should().Be($"{nameof(WithoutResponseCommandHandler)}-1"),
+            p => p.Data.Should().Be($"{nameof(WithoutResponseCommandHandler)}-1"),
             p => p.Data.Should().Be($"{nameof(WithoutResponseCommandHandler)}-2"),
             p => p.Data.Should().Be($"{nameof(WithResponseCommandHandler)}-1"),
             p => p.Data.Should().Be($"{nameof(WithResponseCommandHandler)}-2"),
@@ -252,7 +252,7 @@ public abstract class OperationSagaTests(
             t => t.Status.Should().Be(OperationTaskStatus.Failed));
 
         Store.AllProgress.Should().SatisfyRespectively(
-            p => p.Data.Should().BeOfType<string>().Which.Should().Be($"{nameof(WithoutResponseCommandHandler)}-1"),
+            p => p.Data.Should().Be($"{nameof(WithoutResponseCommandHandler)}-1"),
             p => p.Data.Should().Be($"{nameof(WithoutResponseCommandHandler)}-2"));
     }
 
@@ -301,7 +301,7 @@ public abstract class OperationSagaTests(
             t => t.Status.Should().Be(OperationTaskStatus.Failed));
 
         Store.AllProgress.Should().SatisfyRespectively(
-            p => p.Data.Should().BeOfType<string>().Which.Should().Be($"{nameof(WithoutResponseCommandHandler)}-1"),
+            p => p.Data.Should().Be($"{nameof(WithoutResponseCommandHandler)}-1"),
             p => p.Data.Should().Be($"{nameof(WithoutResponseCommandHandler)}-2"));
     }
 

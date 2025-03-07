@@ -111,7 +111,7 @@ public class SimpleInjectorWorkflowTests : SimpleInjectorTestBase
             t => t.Status.Should().Be(OperationTaskStatus.Completed));
 
         _testStore.AllProgress.Should().SatisfyRespectively(
-            p => p.Data.Should().BeOfType<string>().Which.Should().Be($"{nameof(WithoutResponseCommandHandler)}-1"),
+            p => p.Data.Should().Be($"{nameof(WithoutResponseCommandHandler)}-1"),
             p => p.Data.Should().Be($"{nameof(WithoutResponseCommandHandler)}-2"),
             p => p.Data.Should().Be($"{nameof(WithResponseCommandHandler)}-1"),
             p => p.Data.Should().Be($"{nameof(WithResponseCommandHandler)}-2"),
