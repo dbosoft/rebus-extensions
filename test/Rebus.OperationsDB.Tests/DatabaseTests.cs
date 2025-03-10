@@ -39,8 +39,8 @@ public class DatabaseTests : IClassFixture<DatabaseTests.DeleteDb>
         int workers, 
         int timeout,
         bool useTransactions,
-        Func<IServiceProvider, Task<IEnumerable<(IOperation?, OperationStatus)>>> starter,
-        Func<IServiceProvider,IOperation?, Task>? validator = null)
+        Func<IServiceProvider, Task<IEnumerable<(IOperation, OperationStatus)>>> starter,
+        Func<IServiceProvider, IOperation, Task>? validator = null)
     
     {
         var inMemNetwork = new InMemNetwork();
@@ -111,7 +111,7 @@ public class DatabaseTests : IClassFixture<DatabaseTests.DeleteDb>
             .Build()
             .UseSimpleInjector(container);
 
-        (IOperation?, OperationStatus)[] operations;
+        (IOperation, OperationStatus)[] operations;
         await using (var startScope = AsyncScopedLifestyle.BeginScope(container))
         {
             // starts the bus
