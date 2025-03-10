@@ -17,6 +17,7 @@ public abstract class RebusTestBase : IDisposable
 {
     protected internal readonly TestOperationStore Store = new();
     protected internal readonly TestTrace Trace = new();
+    protected internal readonly IOperationDispatcher OperationDispatcher;
 
     private readonly BuiltinHandlerActivator _activator = new();
     private readonly IMessageEnricher _messageEnricher;
@@ -26,7 +27,6 @@ public abstract class RebusTestBase : IDisposable
     private readonly IWorkflow _workflow;
     private readonly ITaskMessaging _taskMessaging;
     private readonly IOperationManager _operationManager;
-    private readonly IOperationDispatcher _operationDispatcher;
 
     protected RebusTestBase(
         ITestOutputHelper output,
@@ -73,7 +73,7 @@ public abstract class RebusTestBase : IDisposable
             .Create();
         _bus = _busStarter.Bus;
 
-        _operationDispatcher = new DefaultOperationDispatcher(
+        OperationDispatcher = new DefaultOperationDispatcher(
             _bus, workflowOptions,
             NullLogger<DefaultOperationDispatcher>.Instance,
             _operationManager);
@@ -84,7 +84,7 @@ public abstract class RebusTestBase : IDisposable
         
         _workflow = new DefaultWorkflow(
             workflowOptions, _operationManager, taskManager,
-            new RebusOperationMessaging(_bus, _operationDispatcher, taskDispatcher, messageEnricher, workflowOptions));
+            new RebusOperationMessaging(_bus, OperationDispatcher, taskDispatcher, messageEnricher, workflowOptions));
         _taskMessaging = new RebusTaskMessaging(_bus, workflowOptions);
 
         _activator.Register(() => new ProcessOperationSaga(_workflow, NullLogger.Instance));
@@ -127,14 +127,6 @@ public abstract class RebusTestBase : IDisposable
             return;
 
         await OperationsSetup.SubscribeEvents(_bus, _workflow.WorkflowOptions);
-    }
-
-    protected ValueTask<IOperation?> StartOperation<TCommand>(
-        object? additionalData = null,
-        IDictionary<string, string>? additionalHeaders = null)
-        where TCommand : class, new()
-    {
-        return _operationDispatcher.StartNew<TCommand>(additionalData, additionalHeaders);
     }
 
     protected Task WaitForOperation(Guid operationId)

@@ -15,7 +15,7 @@ public class PublishAndTypeBasedRoutingMessageEnricherTests(
 {
 }
 
-public class PublishsAndExplicitRoutingMessageEnricherTests(
+public class PublishAndExplicitRoutingMessageEnricherTests(
     ITestOutputHelper output)
     : MessageEnricherTests(output, WorkflowEventDispatchMode.Publish, false)
 {
@@ -46,12 +46,12 @@ public abstract class MessageEnricherTests(
 
         await StartBus();
 
-        var operation = await StartOperation<UseHeadersCommand>(
+        var operation = await OperationDispatcher.StartNew<UseHeadersCommand>(
             additionalHeaders: new Dictionary<string, string>
             {
                 ["custom_header"] = "custom header value"
             });
-        await WaitForOperation(operation!.Id);
+        await WaitForOperation(operation.Id);
 
         Trace.Traces.Should().SatisfyRespectively(
             trace =>

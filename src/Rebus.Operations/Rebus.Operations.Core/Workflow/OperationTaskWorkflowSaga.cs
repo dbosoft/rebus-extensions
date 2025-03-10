@@ -55,77 +55,118 @@ public abstract class OperationTaskWorkflowSaga<TMessage, TSagaData> : Saga<TSag
         return Task.CompletedTask;
     }
 
-    protected Task Fail(object? message = null)
+    protected Task Fail(string errorMessage)
     {
         return WorkflowEngine.Messaging.DispatchTaskStatusEventAsync(OperationTaskStatusEvent.Failed(
-            Data.OperationId, Data.ParentTaskId, Data.SagaTaskId, message, 
+            Data.OperationId, Data.ParentTaskId, Data.SagaTaskId,
+            new ErrorData { ErrorMessage = errorMessage },
             WorkflowEngine.WorkflowOptions.JsonSerializerOptions));
     }
 
+    protected Task Fail(ErrorData error)
+    {
+        return WorkflowEngine.Messaging.DispatchTaskStatusEventAsync(OperationTaskStatusEvent.Failed(
+            Data.OperationId, Data.ParentTaskId, Data.SagaTaskId, error,
+            WorkflowEngine.WorkflowOptions.JsonSerializerOptions));
+    }
 
-    protected Task Complete(object? message = null)
+    protected Task Complete()
+    {
+        return WorkflowEngine.Messaging.DispatchTaskStatusEventAsync(OperationTaskStatusEvent.Completed(
+            Data.OperationId, Data.ParentTaskId, Data.SagaTaskId));
+    }
+
+    protected Task Complete(object message)
     {
         return WorkflowEngine.Messaging.DispatchTaskStatusEventAsync(OperationTaskStatusEvent.Completed(
             Data.OperationId, Data.ParentTaskId, Data.SagaTaskId, message,
             WorkflowEngine.WorkflowOptions.JsonSerializerOptions));
     }
 
-    protected async Task FailOrRun<T>(OperationTaskStatusEvent<T> message, Func<Task> completedFunc)
-        where T : class, new()
+    protected async Task FailOrRun<TCommand>(
+        OperationTaskStatusEvent<TCommand> message,
+        Func<Task> completedFunc)
+        where TCommand : class, new()
     {
         if (message.InitiatingTaskId != Data.SagaTaskId)
             return;
 
         if (message.OperationFailed)
         {
-            await Fail(message.GetMessage(WorkflowEngine.WorkflowOptions.JsonSerializerOptions)).ConfigureAwait(false);
+            await Fail(message).ConfigureAwait(false);
             return;
         }
 
         await completedFunc().ConfigureAwait(false);
     }
 
-    protected async Task FailOrRun<T, TOpMessage>(OperationTaskStatusEvent<T> message, Func<TOpMessage, Task> completedFunc)
-        where T : class, new()
-        where TOpMessage : class
+    protected async Task FailOrRun<TCommand, TCommandResponse>(
+        OperationTaskStatusEvent<TCommand> message,
+        Func<TCommandResponse, Task> completedFunc)
+        where TCommand : class, new()
+        where TCommandResponse : class
     {
         if (message.InitiatingTaskId != Data.SagaTaskId)
             return;
 
         if (message.OperationFailed)
         {
-            await Fail(message.GetMessage(WorkflowEngine.WorkflowOptions.JsonSerializerOptions)).ConfigureAwait(false);
+            await Fail(message).ConfigureAwait(false);
             return;
         }
 
-        if (message.GetMessage(WorkflowEngine.WorkflowOptions.JsonSerializerOptions) is not TOpMessage opMessage)
-            throw new InvalidOperationException($"Message {typeof(T)} has not returned a result of type {typeof(TOpMessage)}.");
+        if (message.GetMessage(WorkflowEngine.WorkflowOptions.JsonSerializerOptions) is not TCommandResponse response)
+            throw new InvalidOperationException($"Message {typeof(TCommand)} has not returned a result of type {typeof(TCommandResponse)}.");
 
-        await completedFunc(opMessage).ConfigureAwait(false);
+        await completedFunc(response).ConfigureAwait(false);
     }
 
-
-    protected ValueTask<IOperationTask?> StartNewTask<T>(object? additionalData = default) where T : class, new()
+    private async Task Fail<TCommand>(
+        OperationTaskStatusEvent<TCommand> message)
+        where TCommand : class, new()
     {
+        if (!message.OperationFailed)
+            throw new ArgumentException("The operation has not failed.", nameof(message));
 
-        return WorkflowEngine.Messaging.TaskDispatcher.StartNew<T>(Data.OperationId, Data.SagaTaskId, additionalData);
+        var messageData = message.GetMessage(WorkflowEngine.WorkflowOptions.JsonSerializerOptions);
+        if (messageData is ErrorData errorData)
+        {
+            await Fail(errorData).ConfigureAwait(false);
+            return;
+        }
+
+        if (messageData is null)
+        {
+            await Fail($"The task {message.TaskId} of the saga {Data.SagaTaskId} failed without any error data.")
+                .ConfigureAwait(false);
+            return;
+        }
+
+        await Fail($"The task {message.TaskId} of the saga {Data.SagaTaskId} failed with unsupported error data of type {messageData.GetType().Name}.")
+            .ConfigureAwait(false);
     }
 
-
-    protected ValueTask<IOperationTask?> StartNewTask(Type taskCommandType,
-        object? additionalData = default)
+    protected ValueTask<IOperationTask> StartNewTask<TCommand>(
+        object? additionalData = null)
+        where TCommand : class, new()
     {
-        return WorkflowEngine.Messaging.TaskDispatcher.StartNew(Data.OperationId, Data.SagaTaskId, taskCommandType, additionalData);
-
+        return WorkflowEngine.Messaging.TaskDispatcher.StartNew<TCommand>(
+            Data.OperationId, Data.SagaTaskId, additionalData);
     }
 
-  
-    protected ValueTask<IOperationTask?> StartNewTask(object command, object? additionalData = default)
+    protected ValueTask<IOperationTask> StartNewTask(
+        Type commandType,
+        object? additionalData = null)
     {
-        return WorkflowEngine.Messaging.TaskDispatcher.StartNew(Data.OperationId, Data.SagaTaskId, command, additionalData);
-
+        return WorkflowEngine.Messaging.TaskDispatcher.StartNew(
+            Data.OperationId, Data.SagaTaskId, commandType, additionalData);
     }
 
-
-
+    protected ValueTask<IOperationTask> StartNewTask(
+        object command,
+        object? additionalData = null)
+    {
+        return WorkflowEngine.Messaging.TaskDispatcher.StartNew(
+            Data.OperationId, Data.SagaTaskId, command, additionalData);
+    }
 }

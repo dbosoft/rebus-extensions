@@ -7,47 +7,76 @@ using Microsoft.Extensions.Logging;
 using Rebus.Bus;
 
 namespace Dbosoft.Rebus.Operations;
+
 public abstract class OperationTaskDispatcherBase : IOperationTaskDispatcher
 {
     private readonly IBus _bus;
     private readonly WorkflowOptions _options;
     private readonly ILogger<OperationTaskDispatcherBase> _logger;
 
-    protected OperationTaskDispatcherBase(IBus bus, WorkflowOptions options, ILogger<OperationTaskDispatcherBase> logger)
+    protected OperationTaskDispatcherBase(
+        IBus bus,
+        WorkflowOptions options,
+        ILogger<OperationTaskDispatcherBase> logger)
     {
         _bus = bus;
         _options = options;
         _logger = logger;
     }
 
-    public ValueTask<IOperationTask?> StartNew(Guid operationId, Guid initiatingTaskId, object command, 
-        object? additionalData = null, IDictionary<string,string>? additionalHeaders = null)
+    public ValueTask<IOperationTask> StartNew<TCommand>(
+        Guid operationId,
+        Guid initiatingTaskId,
+        object? additionalData = null,
+        IDictionary<string,string>? additionalHeaders = null)
+        where TCommand : class, new()
     {
-        return StartTask(operationId, initiatingTaskId, command, additionalData, additionalHeaders);
-    }
-
-    public ValueTask<IOperationTask?> StartNew<T>(Guid operationId, Guid initiatingTaskId, object? additionalData = default, IDictionary<string,string>? additionalHeaders = null)
-        where T : class, new()
-    {
-        return StartTask(operationId, initiatingTaskId, Activator.CreateInstance<T>(),
+        return StartTask(operationId, initiatingTaskId, Activator.CreateInstance<TCommand>(),
             additionalData, additionalHeaders);
     }
 
-    public ValueTask<IOperationTask?> StartNew(Guid operationId, Guid initiatingTaskId, Type commandType, object? additionalData = default, IDictionary<string,string>? additionalHeaders = null)
+    public ValueTask<IOperationTask> StartNew(
+        Guid operationId,
+        Guid initiatingTaskId,
+        Type commandType,
+        object? additionalData = null,
+        IDictionary<string,string>? additionalHeaders = null)
     {
-        return StartTask(operationId, initiatingTaskId, Activator.CreateInstance(commandType), additionalData, additionalHeaders);
+        return StartTask(operationId, initiatingTaskId, Activator.CreateInstance(commandType),
+            additionalData, additionalHeaders);
     }
 
-    protected abstract ValueTask<(IOperationTask, object)> CreateTask(Guid operationId, Guid initiatingTaskId, object command, DateTimeOffset created, object? additionalData, IDictionary<string,string>? additionalHeaders);
+    public ValueTask<IOperationTask> StartNew(
+        Guid operationId,
+        Guid initiatingTaskId,
+        object command,
+        object? additionalData = null,
+        IDictionary<string, string>? additionalHeaders = null)
+    {
+        return StartTask(operationId, initiatingTaskId, command,
+            additionalData, additionalHeaders);
+    }
 
-    protected async ValueTask<IOperationTask?> StartTask(Guid operationId, Guid initiatingTaskId, 
-        object command, object? additionalData, IDictionary<string,string>? additionalHeaders = null)
+    protected abstract ValueTask<(IOperationTask, object)> CreateTask(
+        Guid operationId,
+        Guid initiatingTaskId,
+        object command,
+        DateTimeOffset created, object? additionalData,
+        IDictionary<string,string>? additionalHeaders);
+
+    protected async ValueTask<IOperationTask> StartTask(
+        Guid operationId,
+        Guid initiatingTaskId, 
+        object command,
+        object? additionalData,
+        IDictionary<string,string>? additionalHeaders = null)
     {
         if (command == null)
             throw new ArgumentNullException(nameof(command));
 
         var created = DateTimeOffset.UtcNow;
-        var (task, taskCommand) = await CreateTask(operationId, initiatingTaskId, command, created, additionalData, additionalHeaders).ConfigureAwait(false);
+        var (task, taskCommand) = await CreateTask(operationId, initiatingTaskId, command, created, additionalData, additionalHeaders)
+            .ConfigureAwait(false);
         var commandJson = JsonSerializer.Serialize(taskCommand, _options.JsonSerializerOptions);
 
         var taskMessage = new CreateNewOperationTaskCommand(
@@ -66,8 +95,5 @@ public abstract class OperationTaskDispatcherBase : IOperationTaskDispatcher
             taskCommand.GetType().Name, operationId, initiatingTaskId);
 
         return task;
-
     }
-
-
 }

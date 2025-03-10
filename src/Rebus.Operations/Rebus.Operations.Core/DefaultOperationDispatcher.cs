@@ -20,13 +20,15 @@ public class DefaultOperationDispatcher : OperationDispatcherBase
         _operationManager = operationManager;
     }
 
-    protected override async ValueTask<(IOperation, object)> CreateOperation(object command,
+    protected override async ValueTask<(IOperation, object)> CreateOperation(
+        object command,
         DateTimeOffset created,
         object? additionalData,
         IDictionary<string,string>? additionalHeaders)
     {
-        return (await _operationManager.GetOrCreateAsync(Guid.NewGuid(), command, 
-            created,
-            additionalData,additionalHeaders).ConfigureAwait(false), command);
+        var operation = await _operationManager
+            .GetOrCreateAsync(Guid.NewGuid(), command, created, additionalData, additionalHeaders)
+            .ConfigureAwait(false);
+        return (operation, command);
     }
 }

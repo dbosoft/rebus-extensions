@@ -207,7 +207,7 @@ public class DatabaseTests : IClassFixture<DatabaseTests.DeleteDb>
             await using var startContext = sp.GetRequiredService<StateStoreContext>();
             var dispatcher = sp.GetRequiredService<IOperationDispatcher>();
 
-            var result = new List<(IOperation?, OperationStatus)>();
+            var result = new List<(IOperation, OperationStatus)>();
             foreach (var _ in Enumerable.Range(0, commands))
             {
                 using var ta = new TransactionScope(TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
@@ -233,7 +233,7 @@ public class DatabaseTests : IClassFixture<DatabaseTests.DeleteDb>
     {
         await SetupAndRunWorkflow(workers, timeout, useTransactions, async sp =>
         {
-            var result = new List<(IOperation?, OperationStatus)>();
+            var result = new List<(IOperation, OperationStatus)>();
             await using var startContext = sp.GetRequiredService<StateStoreContext>();
             var dispatcher = sp.GetRequiredService<IOperationDispatcher>();
 

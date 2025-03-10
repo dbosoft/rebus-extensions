@@ -48,8 +48,8 @@ public abstract class OperationSagaTests(
 
         await StartBus();
 
-        var operation = await StartOperation<SagaCommand>();
-        await WaitForOperation(operation!.Id);
+        var operation = await OperationDispatcher.StartNew<SagaCommand>();
+        await WaitForOperation(operation.Id);
 
         Trace.Traces.Should().SatisfyRespectively(
             trace => trace.ShouldMatch(
@@ -114,8 +114,8 @@ public abstract class OperationSagaTests(
 
         await StartBus();
 
-        var operation = await StartOperation<SagaCommand>();
-        await WaitForOperation(operation!.Id);
+        var operation = await OperationDispatcher.StartNew<SagaCommand>();
+        await WaitForOperation(operation.Id);
 
         Trace.Traces.Should().HaveCount(7);
 
@@ -141,8 +141,8 @@ public abstract class OperationSagaTests(
 
         await StartBus();
 
-        var operation = await StartOperation<SagaCommand>();
-        await WaitForOperation(operation!.Id);
+        var operation = await OperationDispatcher.StartNew<SagaCommand>();
+        await WaitForOperation(operation.Id);
 
         Trace.Traces.Should().SatisfyRespectively(
             trace => trace.ShouldMatch(
@@ -179,8 +179,8 @@ public abstract class OperationSagaTests(
 
         await StartBus();
 
-        var operation = await StartOperation<SagaCommand>();
-        await WaitForOperation(operation!.Id);
+        var operation = await OperationDispatcher.StartNew<SagaCommand>();
+        await WaitForOperation(operation.Id);
 
         Trace.Traces.Should().SatisfyRespectively(
             trace => trace.ShouldMatch(
@@ -217,8 +217,8 @@ public abstract class OperationSagaTests(
 
         await StartBus();
 
-        var operation = await StartOperation<SagaCommand>();
-        await WaitForOperation(operation!.Id);
+        var operation = await OperationDispatcher.StartNew<SagaCommand>();
+        await WaitForOperation(operation.Id);
 
         Trace.Traces.Should().SatisfyRespectively(
             trace => trace.ShouldMatch(
@@ -266,8 +266,8 @@ public abstract class OperationSagaTests(
 
         await StartBus();
 
-        var operation = await StartOperation<SagaCommand>();
-        await WaitForOperation(operation!.Id);
+        var operation = await OperationDispatcher.StartNew<SagaCommand>();
+        await WaitForOperation(operation.Id);
 
         Trace.Traces.Should().SatisfyRespectively(
             trace => trace.ShouldMatch(
@@ -312,8 +312,8 @@ public abstract class OperationSagaTests(
 
         await StartBus();
 
-        var operation = await StartOperation<SagaCommand>();
-        await WaitForOperation(operation!.Id);
+        var operation = await OperationDispatcher.StartNew<SagaCommand>();
+        await WaitForOperation(operation.Id);
 
         Trace.Traces.Should().SatisfyRespectively(
             trace => trace.ShouldMatch(
@@ -326,7 +326,8 @@ public abstract class OperationSagaTests(
             {
                 o.Id.Should().Be(operation.Id);
                 o.Status.Should().Be(OperationStatus.Failed);
-                o.Data.Should().BeOfType<string>().Which.Should().Be("TEST ERROR!");
+                o.Data.Should().BeOfType<ErrorData>()
+                    .Which.ErrorMessage.Should().Be("TEST ERROR!");
             });
 
         Store.AllTasks.Should().SatisfyRespectively(
@@ -342,8 +343,8 @@ public abstract class OperationSagaTests(
 
         await StartBus();
 
-        var operation = await StartOperation<SagaCommand>();
-        await WaitForOperation(operation!.Id);
+        var operation = await OperationDispatcher.StartNew<SagaCommand>();
+        await WaitForOperation(operation.Id);
 
         Trace.Traces.Should().SatisfyRespectively(
             trace => trace.ShouldMatch(
@@ -356,7 +357,8 @@ public abstract class OperationSagaTests(
             {
                 o.Id.Should().Be(operation.Id);
                 o.Status.Should().Be(OperationStatus.Failed);
-                o.Data.Should().BeOfType<ErrorData>().Which.ErrorMessage.Should().Match("*TEST EXCEPTION!*");
+                o.Data.Should().BeOfType<ErrorData>()
+                    .Which.ErrorMessage.Should().Match("*TEST EXCEPTION!*");
             });
 
         Store.AllTasks.Should().SatisfyRespectively(

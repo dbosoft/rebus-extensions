@@ -43,8 +43,8 @@ public abstract class OperationTests(
 
         await StartBus();
 
-        var operation = await StartOperation<WithoutResponseCommand>();
-        await WaitForOperation(operation!.Id);
+        var operation = await OperationDispatcher.StartNew<WithoutResponseCommand>();
+        await WaitForOperation(operation.Id);
 
         Trace.Traces.Should().SatisfyRespectively(
             trace => trace.ShouldMatch(
@@ -75,8 +75,8 @@ public abstract class OperationTests(
 
         await StartBus();
 
-        var operation = await StartOperation<WithResponseCommand>();
-        await WaitForOperation(operation!.Id);
+        var operation = await OperationDispatcher.StartNew<WithResponseCommand>();
+        await WaitForOperation(operation.Id);
 
         Trace.Traces.Should().SatisfyRespectively(
             trace => trace.ShouldMatch(
@@ -102,14 +102,78 @@ public abstract class OperationTests(
     }
 
     [Fact]
+    public async Task Dispatcher_starts_operation_with_command_object()
+    {
+        AddTaskHandler<WithoutResponseCommand, WithoutResponseCommandHandler>();
+
+        await StartBus();
+
+        var operation = await OperationDispatcher.StartNew(new WithoutResponseCommand());
+        await WaitForOperation(operation.Id);
+
+        Trace.Traces.Should().SatisfyRespectively(
+            trace => trace.ShouldMatch(
+                typeof(WithoutResponseCommandHandler),
+                "Handle",
+                typeof(OperationTask<WithoutResponseCommand>)));
+
+        Store.AllOperations.Should().SatisfyRespectively(
+            o =>
+            {
+                o.Id.Should().Be(operation.Id);
+                o.Status.Should().Be(OperationStatus.Completed);
+                o.Data.Should().BeNull();
+            });
+
+        Store.AllTasks.Should().SatisfyRespectively(
+            t => t.Status.Should().Be(OperationTaskStatus.Completed));
+
+        Store.AllProgress.Should().SatisfyRespectively(
+            p => p.Data.Should().Be($"{nameof(WithoutResponseCommandHandler)}-1"),
+            p => p.Data.Should().Be($"{nameof(WithoutResponseCommandHandler)}-2"));
+    }
+
+    [Fact]
+    public async Task Dispatcher_starts_operation_with_command_type_object()
+    {
+        AddTaskHandler<WithoutResponseCommand, WithoutResponseCommandHandler>();
+
+        await StartBus();
+
+        var operation = await OperationDispatcher.StartNew(typeof(WithoutResponseCommand));
+        await WaitForOperation(operation.Id);
+
+        Trace.Traces.Should().SatisfyRespectively(
+            trace => trace.ShouldMatch(
+                typeof(WithoutResponseCommandHandler),
+                "Handle",
+                typeof(OperationTask<WithoutResponseCommand>)));
+
+        Store.AllOperations.Should().SatisfyRespectively(
+            o =>
+            {
+                o.Id.Should().Be(operation.Id);
+                o.Status.Should().Be(OperationStatus.Completed);
+                o.Data.Should().BeNull();
+            });
+
+        Store.AllTasks.Should().SatisfyRespectively(
+            t => t.Status.Should().Be(OperationTaskStatus.Completed));
+
+        Store.AllProgress.Should().SatisfyRespectively(
+            p => p.Data.Should().Be($"{nameof(WithoutResponseCommandHandler)}-1"),
+            p => p.Data.Should().Be($"{nameof(WithoutResponseCommandHandler)}-2"));
+    }
+
+    [Fact]
     public async Task Error_is_reported()
     {
         AddTaskHandler<WithoutResponseCommand, FailWithErrorHandler<WithoutResponseCommand>>();
 
         await StartBus();
 
-        var operation = await StartOperation<WithoutResponseCommand>();
-        await WaitForOperation(operation!.Id);
+        var operation = await OperationDispatcher.StartNew<WithoutResponseCommand>();
+        await WaitForOperation(operation.Id);
 
         Trace.Traces.Should().SatisfyRespectively(
             trace => trace.ShouldMatch(
@@ -139,8 +203,8 @@ public abstract class OperationTests(
 
         await StartBus();
 
-        var operation = await StartOperation<WithoutResponseCommand>();
-        await WaitForOperation(operation!.Id);
+        var operation = await OperationDispatcher.StartNew<WithoutResponseCommand>();
+        await WaitForOperation(operation.Id);
 
         Trace.Traces.Should().SatisfyRespectively(
             trace => trace.ShouldMatch(
