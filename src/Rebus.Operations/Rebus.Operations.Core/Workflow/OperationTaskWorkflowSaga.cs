@@ -143,7 +143,7 @@ public abstract class OperationTaskWorkflowSaga<TMessage, TSagaData> : Saga<TSag
         }
 
         throw new InvalidOperationException(
-            $"The failed task {message.TaskId} of the saga {Data.SagaTaskId} contains invalid data of type {messageData.GetType().Name}.");
+            $"The failed task {message.TaskId} of the saga {Data.SagaTaskId} should contain {nameof(ErrorData)} but contains data of type {messageData.GetType().Name}.");
     }
 
     protected ValueTask<IOperationTask> StartNewTask<TCommand>(
