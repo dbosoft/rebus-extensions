@@ -142,8 +142,8 @@ public abstract class OperationTaskWorkflowSaga<TMessage, TSagaData> : Saga<TSag
             return;
         }
 
-        await Fail($"The task {message.TaskId} of the saga {Data.SagaTaskId} failed with unsupported error data of type {messageData.GetType().Name}.")
-            .ConfigureAwait(false);
+        throw new InvalidOperationException(
+            $"The failed task {message.TaskId} of the saga {Data.SagaTaskId} contains invalid data of type {messageData.GetType().Name}.");
     }
 
     protected ValueTask<IOperationTask> StartNewTask<TCommand>(
