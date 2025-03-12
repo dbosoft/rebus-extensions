@@ -1,5 +1,6 @@
 using Dbosoft.Rebus.Operations;
 using Dbosoft.Rebus.Operations.Tests;
+using Dbosoft.Rebus.Operations.Tests.Data;
 using Rebus.Persistence.InMem;
 using Rebus.Routing.TypeBased;
 using Rebus.Transport.InMem;
@@ -17,18 +18,21 @@ public abstract class SimpleInjectorTestBase
         _output = output;
     }
 
-    public void SetupRebus(Container container, bool sendMode, string eventDestination)
+    public void SetupRebus(
+        Container container,
+        WorkflowEventDispatchMode dispatchMode,
+        bool useTypeBasedRouting)
     {
         var rebusNetwork = new InMemNetwork();
         
         container.Register<IRebusUnitOfWork, TestRebusUnitOfWork>(Lifestyle.Scoped);
         container.RegisterInstance(new WorkflowOptions
         {
-            DispatchMode = sendMode ? WorkflowEventDispatchMode.Send : WorkflowEventDispatchMode.Publish,
-            EventDestination = eventDestination,
-            OperationsDestination = eventDestination
+            DispatchMode = dispatchMode,
+            EventDestination = useTypeBasedRouting ? null : "main",
+            OperationsDestination = useTypeBasedRouting ? null : "main",
         });
-        container.AddRebusOperationsHandlers<TestOperationManager, TestTaskManager>();
+        container.AddRebusOperationsHandlers<TestOperationManager, TestOperationTaskManager>();
         container.ConfigureRebus(configurer =>
         {
             return configurer
@@ -36,16 +40,14 @@ public abstract class SimpleInjectorTestBase
                 .Transport(cfg => cfg.UseInMemoryTransport(rebusNetwork, "main"))
                 .Routing(r =>
                 {
-                    if(string.IsNullOrWhiteSpace(eventDestination))
+                    if (useTypeBasedRouting)
+                    {
                         r.TypeBased().AddOperations("main");
-                    
+                    }
                 })
                 .Sagas(x => x.StoreInMemory())
                 .Logging(x=>x.Use(new RebusTestLogging(_output)))
-
                 .Start();
         });
-
     }
-
 }

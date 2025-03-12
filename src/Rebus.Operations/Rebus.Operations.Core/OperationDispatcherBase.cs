@@ -15,41 +15,57 @@ public abstract class OperationDispatcherBase : IOperationDispatcher
     private readonly WorkflowOptions _options;
     private readonly ILogger<OperationDispatcherBase> _logger;
 
-    protected OperationDispatcherBase(IBus bus, WorkflowOptions options, ILogger<OperationDispatcherBase> logger)
+    protected OperationDispatcherBase(
+        IBus bus,
+        WorkflowOptions options,
+        ILogger<OperationDispatcherBase> logger)
     {
         _bus = bus;
         _options = options;
         _logger = logger;
     }
 
-    public ValueTask<IOperation?> StartNew(object command, object? additionalData = default, IDictionary<string,string>? additionalHeaders = null)
+    public ValueTask<IOperation> StartNew<TCommand>(
+        object? additionalData = null,
+        IDictionary<string,string>? additionalHeaders = null)
+        where TCommand : class, new()
+    {
+        return StartOperation(Activator.CreateInstance<TCommand>(), additionalData, additionalHeaders);
+    }
+
+    public ValueTask<IOperation> StartNew(
+        Type commandType,
+        object? additionalData = null,
+        IDictionary<string,string>? additionalHeaders = null)
+    {
+        return StartOperation(Activator.CreateInstance(commandType), additionalData, additionalHeaders);
+    }
+
+    public ValueTask<IOperation> StartNew(
+        object command,
+        object? additionalData = null,
+        IDictionary<string, string>? additionalHeaders = null)
     {
         return StartOperation(command, additionalData, additionalHeaders);
     }
 
-    public ValueTask<IOperation?> StartNew<T>(object? additionalData = default, IDictionary<string,string>? additionalHeaders = null)
-        where T : class, new()
+    protected abstract ValueTask<(IOperation, object)> CreateOperation(
+        object command,
+        DateTimeOffset created,
+        object? additionalData,
+        IDictionary<string,string>? additionalHeaders);
+
+    protected async ValueTask<IOperation> StartOperation(
+        object command,
+        object? additionalData,
+        IDictionary<string,string>? additionalHeaders = null)
     {
-        return StartOperation( Activator.CreateInstance<T>(),additionalData, additionalHeaders);
-    }
-
-
-    public ValueTask<IOperation?> StartNew(Type commandType, object? additionalData = default, IDictionary<string,string>? additionalHeaders = null)
-    {
-        return StartOperation(commandType,additionalData, additionalHeaders);
-    }
-
-    protected abstract ValueTask<(IOperation, object)> CreateOperation(object command, DateTimeOffset created, object? additionalData, IDictionary<string,string>? additionalHeaders);
-
-    protected async ValueTask<IOperation?> StartOperation(object command, object? additionalData, IDictionary<string,string>? additionalHeaders = null)
-    {
-            
         if (command == null)
             throw new ArgumentNullException(nameof(command));
 
         var created = DateTimeOffset.Now;
-        var (operation, taskCommand) =
-            await CreateOperation(command, created, additionalData, additionalHeaders).ConfigureAwait(false);
+        var (operation, taskCommand) = await CreateOperation(command, created, additionalData, additionalHeaders)
+            .ConfigureAwait(false);
 
         var commandJson = JsonSerializer.Serialize(taskCommand, _options.JsonSerializerOptions);
 
@@ -73,5 +89,4 @@ public abstract class OperationDispatcherBase : IOperationDispatcher
 
         return operation;
     }
-
 }
