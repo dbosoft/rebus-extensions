@@ -63,7 +63,7 @@ public abstract class OperationDispatcherBase : IOperationDispatcher
         if (command == null)
             throw new ArgumentNullException(nameof(command));
 
-        var created = DateTimeOffset.Now;
+        var created = DateTimeOffset.UtcNow;
         var (operation, taskCommand) = await CreateOperation(command, created, additionalData, additionalHeaders)
             .ConfigureAwait(false);
 

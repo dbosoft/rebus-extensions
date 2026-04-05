@@ -15,7 +15,7 @@ public class OperationTaskStatusEvent : OperationTaskStatusEventBase
 
     protected OperationTaskStatusEvent(Guid operationId, Guid initiatingTaskId, Guid taskId, bool failed,
         string? messageType,
-        string? messageData) : base(operationId, initiatingTaskId, taskId, DateTimeOffset.Now,  failed, messageType, messageData)
+        string? messageData) : base(operationId, initiatingTaskId, taskId, DateTimeOffset.UtcNow,  failed, messageType, messageData)
     {
 
     }
