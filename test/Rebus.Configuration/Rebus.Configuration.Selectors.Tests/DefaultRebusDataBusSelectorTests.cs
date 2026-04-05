@@ -9,7 +9,7 @@ public class DefaultRebusDataBusSelectorTests : SelectorTests
     [Fact]
     public void Configures_As_InMemory()
     {
-        var deps = SetupDeps(new Dictionary<string, string>
+        var deps = SetupDeps(new Dictionary<string, string?>
         {
             { "databus:type", "inmemory" }
         });
@@ -25,7 +25,7 @@ public class DefaultRebusDataBusSelectorTests : SelectorTests
     [Fact]
     public void Configures_As_FileSystem()
     {
-        var deps = SetupDeps(new Dictionary<string, string>
+        var deps = SetupDeps(new Dictionary<string, string?>
         {
             { "databus:type", "filesystem" },
             { "databus:path", "%TEMP%" }
@@ -43,7 +43,7 @@ public class DefaultRebusDataBusSelectorTests : SelectorTests
     [Fact]
     public void Configures_As_FileSystem_Throws_If_Path_Missing()
     {
-        var deps = SetupDeps(new Dictionary<string, string>
+        var deps = SetupDeps(new Dictionary<string, string?>
         {
             { "databus:type", "filesystem" }
         });

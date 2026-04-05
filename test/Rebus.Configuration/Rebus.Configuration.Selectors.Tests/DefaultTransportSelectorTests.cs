@@ -10,7 +10,7 @@ public class DefaultTransportSelectorTests : SelectorTests
     [Fact]
     public void Throws_on_Missing_bus_type()
     {
-        var deps = SetupDeps(new Dictionary<string, string>());
+        var deps = SetupDeps(new Dictionary<string, string?>());
 
 
         var selector =
@@ -23,7 +23,7 @@ public class DefaultTransportSelectorTests : SelectorTests
     [Fact]
     public void Throws_on_Invalid_bus_type()
     {
-        var deps = SetupDeps(new Dictionary<string, string>
+        var deps = SetupDeps(new Dictionary<string, string?>
         {
             { "bus:type", "invalid" }
         });
@@ -39,7 +39,7 @@ public class DefaultTransportSelectorTests : SelectorTests
     [Fact]
     public void Configures_As_InMemory()
     {
-        var deps = SetupDeps(new Dictionary<string, string>
+        var deps = SetupDeps(new Dictionary<string, string?>
         {
             { "bus:type", "inmemory" }
         });
@@ -66,7 +66,7 @@ public class DefaultTransportSelectorTests : SelectorTests
     [Fact]
     public void Configures_As_InMemory_Without_Subscription_Store()
     {
-        var deps = SetupDeps(new Dictionary<string, string>
+        var deps = SetupDeps(new Dictionary<string, string?>
         {
             { "bus:type", "inmemory" },
             { "bus:storeSubscriptions", "false" }
@@ -94,7 +94,7 @@ public class DefaultTransportSelectorTests : SelectorTests
     [Fact]
     public void Configures_As_FileSystem_With_Path()
     {
-        var deps = SetupDeps(new Dictionary<string, string>
+        var deps = SetupDeps(new Dictionary<string, string?>
         {
             { "bus:type", "filesystem" },
             { "bus:path", "%TEMP" }
@@ -121,7 +121,7 @@ public class DefaultTransportSelectorTests : SelectorTests
     [Fact]
     public void Configures_As_FileSystem_Throws_if_Path_missing()
     {
-        var deps = SetupDeps(new Dictionary<string, string>
+        var deps = SetupDeps(new Dictionary<string, string?>
         {
             { "bus:type", "filesystem" }
         });

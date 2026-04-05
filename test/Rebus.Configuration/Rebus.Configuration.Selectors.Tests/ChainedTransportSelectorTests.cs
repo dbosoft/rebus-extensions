@@ -11,7 +11,7 @@ public class ChainedTransportSelectorTests : SelectorTests
     [Fact]
     public void Configures_Calls_Chain()
     {
-        var deps = SetupDeps(new Dictionary<string, string>
+        var deps = SetupDeps(new Dictionary<string, string?>
         {
             { "bus:type", "bus2" }
         });
@@ -37,7 +37,7 @@ public class ChainedTransportSelectorTests : SelectorTests
     [Fact]
     public void Mixed_Selector_throws_ArgumentException()
     {
-        var deps = SetupDeps(new Dictionary<string, string>
+        var deps = SetupDeps(new Dictionary<string, string?>
         {
             { "bus:type", "bus2" }
         });
@@ -56,7 +56,7 @@ public class ChainedTransportSelectorTests : SelectorTests
     [Fact]
     public void Empty_Selectors_throws_ArgumentException()
     {
-        var deps = SetupDeps(new Dictionary<string, string>
+        var deps = SetupDeps(new Dictionary<string, string?>
         {
             { "bus:type", "bus2" }
         });
@@ -71,7 +71,7 @@ public class ChainedTransportSelectorTests : SelectorTests
     [Fact]
     public void Configures_Calls_First_Selector()
     {
-        var deps = SetupDeps(new Dictionary<string, string>
+        var deps = SetupDeps(new Dictionary<string, string?>
         {
             { "bus:type", "bus1" }
         });
@@ -97,7 +97,7 @@ public class ChainedTransportSelectorTests : SelectorTests
     [Fact]
     public void Configures_Calls_Next_selector_if_failed()
     {
-        var deps = SetupDeps(new Dictionary<string, string>
+        var deps = SetupDeps(new Dictionary<string, string?>
         {
             { "bus:type", "bus1" }
         });
