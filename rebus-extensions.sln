@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rebus.SimpleInjector.Tests"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rebus.OperationsDB.Tests", "test\Rebus.OperationsDB.Tests\Rebus.OperationsDB.Tests.csproj", "{73DED33B-5E78-4843-B3B6-2C9BB0766E42}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rebus.Configuration.PostgreSqlSelectors", "src\Rebus.Configuration\Rebus.Configuration.PostgreSqlSelectors\Rebus.Configuration.PostgreSqlSelectors.csproj", "{9193317B-0224-48E3-A777-5FBB39D86558}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +89,10 @@ Global
 		{73DED33B-5E78-4843-B3B6-2C9BB0766E42}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{73DED33B-5E78-4843-B3B6-2C9BB0766E42}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{73DED33B-5E78-4843-B3B6-2C9BB0766E42}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9193317B-0224-48E3-A777-5FBB39D86558}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9193317B-0224-48E3-A777-5FBB39D86558}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9193317B-0224-48E3-A777-5FBB39D86558}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9193317B-0224-48E3-A777-5FBB39D86558}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
