@@ -46,10 +46,9 @@ steps:
     reporttypes: 'Cobertura'
 
 # Publish the combined code coverage to the pipeline
-- task: PublishCodeCoverageResults@1
+- task: PublishCodeCoverageResults@2
   displayName: 'Publish code coverage report'
   inputs:
-    codeCoverageTool: 'Cobertura'
     summaryFileLocation: '$(Build.SourcesDirectory)/CoverageResults/Cobertura.xml'
 
 - task: DotNetCoreCLI@2

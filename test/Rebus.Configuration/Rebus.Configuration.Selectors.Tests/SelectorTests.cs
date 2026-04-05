@@ -15,7 +15,7 @@ public abstract class SelectorTests
     protected (ILogger Logger, IConfiguration Configuration) SetupDeps(IDictionary<string, string> config)
     {
         var configRoot = new ConfigurationBuilder()
-            .AddInMemoryCollection(config).Build();
+            .AddInMemoryCollection(config!).Build();
 
         var nullLoggerFactory = new NullLoggerFactory();
         return (nullLoggerFactory.CreateLogger(""), configRoot);
