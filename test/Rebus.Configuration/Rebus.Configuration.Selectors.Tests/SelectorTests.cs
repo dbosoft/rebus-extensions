@@ -12,7 +12,7 @@ namespace Dbosoft.Rebus.Configuration.Tests;
 
 public abstract class SelectorTests
 {
-    protected (ILogger Logger, IConfiguration Configuration) SetupDeps(IDictionary<string, string> config)
+    protected (ILogger Logger, IConfiguration Configuration) SetupDeps(IDictionary<string, string?> config)
     {
         var configRoot = new ConfigurationBuilder()
             .AddInMemoryCollection(config).Build();

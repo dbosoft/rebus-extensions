@@ -8,7 +8,7 @@ public class DefaultTimeoutStoreSelectorTests : SelectorTests
     [Fact]
     public void Configures_As_InMemory()
     {
-        var deps = SetupDeps(new Dictionary<string, string>
+        var deps = SetupDeps(new Dictionary<string, string?>
         {
             { "store:type", "inmemory" }
         });

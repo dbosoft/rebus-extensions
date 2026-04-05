@@ -8,7 +8,7 @@ public class DefaultSagaStoreSelectorTests : SelectorTests
     [Fact]
     public void Throws_on_Missing_bus_type()
     {
-        var deps = SetupDeps(new Dictionary<string, string>());
+        var deps = SetupDeps(new Dictionary<string, string?>());
 
 
         var selector =
@@ -21,7 +21,7 @@ public class DefaultSagaStoreSelectorTests : SelectorTests
     [Fact]
     public void Throws_on_Invalid_bus_type()
     {
-        var deps = SetupDeps(new Dictionary<string, string>
+        var deps = SetupDeps(new Dictionary<string, string?>
         {
             { "store:type", "invalid" }
         });
@@ -37,7 +37,7 @@ public class DefaultSagaStoreSelectorTests : SelectorTests
     [Fact]
     public void Configures_As_InMemory()
     {
-        var deps = SetupDeps(new Dictionary<string, string>
+        var deps = SetupDeps(new Dictionary<string, string?>
         {
             { "store:type", "inmemory" }
         });
@@ -53,7 +53,7 @@ public class DefaultSagaStoreSelectorTests : SelectorTests
     [Fact]
     public void Configures_As_FileSystem_With_Path()
     {
-        var deps = SetupDeps(new Dictionary<string, string>
+        var deps = SetupDeps(new Dictionary<string, string?>
         {
             { "store:type", "filesystem" },
             { "store:path", "%TEMP" }
@@ -70,7 +70,7 @@ public class DefaultSagaStoreSelectorTests : SelectorTests
     [Fact]
     public void Configures_As_FileSystem_Throws_if_Path_missing()
     {
-        var deps = SetupDeps(new Dictionary<string, string>
+        var deps = SetupDeps(new Dictionary<string, string?>
         {
             { "store:type", "filesystem" }
         });
