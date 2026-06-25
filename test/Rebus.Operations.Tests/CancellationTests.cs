@@ -14,7 +14,7 @@ namespace Dbosoft.Rebus.Operations.Tests;
 // behaviour is independent of the dispatch/routing mode, so one representative
 // combination (publish + type-based routing) is used.
 public class CancellationTests(ITestOutputHelper output)
-    : RebusTestBase(output, WorkflowEventDispatchMode.Publish, true)
+    : RebusTestBase(output, WorkflowEventDispatchMode.Publish, true, concurrent: true)
 {
     [Fact]
     public async Task Cancellation_cancels_a_running_opted_in_task()

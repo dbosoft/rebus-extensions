@@ -32,8 +32,9 @@ public abstract class RebusTestBase : IDisposable
     protected RebusTestBase(
         ITestOutputHelper output,
         WorkflowEventDispatchMode dispatchMode,
-        bool useTypeBasedRouting)
-        : this(output, dispatchMode, useTypeBasedRouting, new DefaultMessageEnricher())
+        bool useTypeBasedRouting,
+        bool concurrent = false)
+        : this(output, dispatchMode, useTypeBasedRouting, new DefaultMessageEnricher(), concurrent)
     {
     }
 
@@ -41,7 +42,8 @@ public abstract class RebusTestBase : IDisposable
         ITestOutputHelper output,
         WorkflowEventDispatchMode dispatchMode,
         bool useTypeBasedRouting,
-        IMessageEnricher messageEnricher)
+        IMessageEnricher messageEnricher,
+        bool concurrent = false)
     {
         _dispatchMode = dispatchMode;
         _messageEnricher = messageEnricher;
@@ -59,12 +61,18 @@ public abstract class RebusTestBase : IDisposable
         _busStarter = Configure.With(_activator)
             .Options(o =>
             {
-                o.RetryStrategy(maxDeliveryAttempts: 1, secondLevelRetriesEnabled: true);
+                // Concurrent workers let two messages for the same operation saga run at
+                // once, which can produce an optimistic-concurrency conflict; allow Rebus
+                // to retry those instead of dead-lettering. Serial tests keep fail-fast.
+                o.RetryStrategy(maxDeliveryAttempts: concurrent ? 5 : 1, secondLevelRetriesEnabled: true);
                 o.EnableOperationCancellation(workflowOptions, _cancellationRegistry);
-                // A cancellable handler stays in-flight until it is cancelled, so the
-                // bus must be able to process the cancellation event concurrently.
-                o.SetNumberOfWorkers(2);
-                o.SetMaxParallelism(8);
+                if (concurrent)
+                {
+                    // A cancellable handler stays in-flight until it is cancelled, so the
+                    // bus must be able to process the cancellation event on another worker.
+                    o.SetNumberOfWorkers(2);
+                    o.SetMaxParallelism(8);
+                }
             })
             .Transport(cfg => cfg.UseInMemoryTransport(rebusNetwork, "main"))
             .Routing(r =>
