@@ -36,6 +36,20 @@ public class CancellationUnitTests
     }
 
     [Fact]
+    public void Registry_register_after_dispose_returns_none_and_does_not_leak()
+    {
+        var registry = new TaskCancellationRegistry();
+        registry.Dispose();
+
+        // Registering after disposal (a shutdown race) must not add a leaked source;
+        // it returns a non-cancellable token and a second Dispose stays a no-op.
+        var token = registry.Register(Guid.NewGuid(), Guid.NewGuid());
+        token.CanBeCanceled.Should().BeFalse();
+
+        registry.Dispose();
+    }
+
+    [Fact]
     public void Registry_cancel_for_other_operation_does_not_trip_token()
     {
         var registry = new TaskCancellationRegistry();

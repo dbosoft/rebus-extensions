@@ -55,12 +55,17 @@ public class RebusTaskMessaging : ITaskMessaging
                 _options.JsonSerializerOptions), additionalHeaders);
     }
 
-    public Task CancelTask(IOperationTaskMessage message, IDictionary<string,string>? additionalHeaders = null)
+    public async Task CancelTask(IOperationTaskMessage message, IDictionary<string,string>? additionalHeaders = null)
     {
-        _cancellationRegistry.Remove(message.OperationId, message.TaskId);
-        return _bus.SendWorkflowEvent(_options,
+        // Report first, then drop the registration. If the send fails the message is
+        // retried with the registration still in place, so the retried handler observes
+        // the (still cancelled) token rather than registering a fresh, non-cancelled one
+        // (same retry-safe ordering as OperationCancellationStep).
+        await _bus.SendWorkflowEvent(_options,
             OperationTaskStatusEvent.Cancelled(
-                message.OperationId, message.InitiatingTaskId, message.TaskId), additionalHeaders);
+                message.OperationId, message.InitiatingTaskId, message.TaskId), additionalHeaders)
+            .ConfigureAwait(false);
+        _cancellationRegistry.Remove(message.OperationId, message.TaskId);
     }
 
     public CancellationToken GetCancellationToken(IOperationTaskMessage message)

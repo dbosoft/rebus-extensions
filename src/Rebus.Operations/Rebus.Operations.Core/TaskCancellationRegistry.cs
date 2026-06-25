@@ -23,6 +23,12 @@ public sealed class TaskCancellationRegistry : ITaskCancellationRegistry, IDispo
     {
         var key = (operationId, taskId);
 
+        // The registry is being torn down (host shutdown); don't add an entry that the
+        // already-finished Dispose sweep would miss and leak. The host's own shutdown
+        // token handles termination from here.
+        if (Volatile.Read(ref _disposed) != 0)
+            return CancellationToken.None;
+
         // Idempotent: a second registration for the same task returns the existing token.
         if (_sources.TryGetValue(key, out var existing))
             return existing.Token;
@@ -33,6 +39,15 @@ public sealed class TaskCancellationRegistry : ITaskCancellationRegistry, IDispo
         var winner = _sources.GetOrAdd(key, created);
         if (!ReferenceEquals(winner, created))
             created.Dispose();
+
+        // Dispose may have run concurrently after our check; if so, remove and dispose
+        // the entry we just added so it does not leak past the (now finished) sweep.
+        if (Volatile.Read(ref _disposed) != 0 && _sources.TryRemove(key, out var stray))
+        {
+            stray.Dispose();
+            return CancellationToken.None;
+        }
+
         return winner.Token;
     }
 
