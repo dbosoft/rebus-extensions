@@ -16,7 +16,7 @@ public static class OperationManagerExtensions
         {
             await Task.Delay(100);
             operation = await operationManager.GetByIdAsync(operationId);
-        } while (operation is not { Status: OperationStatus.Failed or OperationStatus.Completed }
+        } while (operation is not { Status: OperationStatus.Failed or OperationStatus.Completed or OperationStatus.Cancelled }
                  && DateTimeOffset.UtcNow - start <= timeout);
     }
 }

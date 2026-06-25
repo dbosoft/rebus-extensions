@@ -19,6 +19,7 @@ public static class RebusConfigurerExtensions
             .Map<OperationTaskProgressEvent>(eventsOwner)
             .Map<OperationTaskStatusEvent>(eventsOwner)
             .Map<OperationTaskAcceptedEvent>(eventsOwner)
-            .Map<OperationTimeoutEvent>(eventsOwner);
+            .Map<OperationTimeoutEvent>(eventsOwner)
+            .Map<OperationCancellationRequestedEvent>(eventsOwner);
     }
 }

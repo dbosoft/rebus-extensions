@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Dbosoft.Rebus.Operations.Commands;
+using Dbosoft.Rebus.Operations.Events;
 using Microsoft.Extensions.Logging;
 using Rebus.Bus;
 
@@ -47,6 +48,21 @@ public abstract class OperationDispatcherBase : IOperationDispatcher
         IDictionary<string, string>? additionalHeaders = null)
     {
         return StartOperation(command, additionalData, additionalHeaders);
+    }
+
+    public async ValueTask RequestCancellation(
+        Guid operationId,
+        IDictionary<string,string>? additionalHeaders = null)
+    {
+        // Broadcast directly to the workers. Best-effort: workers running a task of
+        // this operation trip its cancellation token; everyone else ignores it (so
+        // cancelling an unknown or finished operation is a harmless no-op).
+        await _bus.SendWorkflowEvent(_options,
+                new OperationCancellationRequestedEvent { OperationId = operationId },
+                additionalHeaders)
+            .ConfigureAwait(false);
+
+        _logger.LogDebug("Requested cancellation of operation {operationId}", operationId);
     }
 
     protected abstract ValueTask<(IOperation, object)> CreateOperation(

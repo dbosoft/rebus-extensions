@@ -11,13 +11,14 @@ public class OperationTaskStatusEventBase : IOperationTaskStatusEvent
 
     protected OperationTaskStatusEventBase(Guid operationId, Guid initiatingTaskId, Guid taskId,
         DateTimeOffset created,
-        bool failed, string? messageType,
+        bool failed, bool cancelled, string? messageType,
         string? messageData)
     {
         OperationId = operationId;
         InitiatingTaskId = initiatingTaskId;
         TaskId = taskId;
         OperationFailed = failed;
+        OperationCancelled = cancelled;
         MessageData = messageData;
         MessageType = messageType;
         Created = created;
@@ -26,6 +27,14 @@ public class OperationTaskStatusEventBase : IOperationTaskStatusEvent
     public string? MessageData { get; set; }
     public string? MessageType { get; set; }
     public bool OperationFailed { get; set; }
+
+    /// <summary>
+    /// Indicates that the task was cancelled (in response to a cancellation
+    /// request) rather than completing or failing on its own. Defaults to
+    /// <c>false</c>, so events serialized before cancellation support stay
+    /// wire-compatible.
+    /// </summary>
+    public bool OperationCancelled { get; set; }
     public Guid OperationId { get; set; }
     public Guid TaskId { get; set; }
     public DateTimeOffset Created { get; set;  }

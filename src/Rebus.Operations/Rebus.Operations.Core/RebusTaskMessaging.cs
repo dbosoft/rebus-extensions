@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Dbosoft.Rebus.Operations.Events;
 using Rebus.Bus;
@@ -11,41 +12,68 @@ public class RebusTaskMessaging : ITaskMessaging
 {
     private readonly IBus _bus;
     private readonly WorkflowOptions _options;
+    private readonly ITaskCancellationRegistry _cancellationRegistry;
 
-    public RebusTaskMessaging(IBus bus, 
-        WorkflowOptions options)
+    public RebusTaskMessaging(IBus bus,
+        WorkflowOptions options,
+        ITaskCancellationRegistry cancellationRegistry)
     {
         _bus = bus;
         _options = options;
+        _cancellationRegistry = cancellationRegistry;
     }
-    
+
     public Task FailTask(IOperationTaskMessage message, string errorMessage, IDictionary<string,string>? additionalHeaders = null)
     {
         return FailTask(message, new ErrorData { ErrorMessage = errorMessage }, additionalHeaders);
     }
 
-    public Task FailTask(IOperationTaskMessage message, ErrorData error, IDictionary<string,string>? additionalHeaders = null)
+    // All terminal paths report the status event first and only drop the cancellation
+    // registration after the send succeeds. If the send fails the message is retried with
+    // the registration still in place, so the retried handler observes the existing (possibly
+    // already cancelled) token instead of registering a fresh, non-cancelled one.
+    public async Task FailTask(IOperationTaskMessage message, ErrorData error, IDictionary<string,string>? additionalHeaders = null)
     {
-        return _bus.SendWorkflowEvent(_options,
+        await _bus.SendWorkflowEvent(_options,
             OperationTaskStatusEvent.Failed(
                 message.OperationId, message.InitiatingTaskId,
-                message.TaskId, error,_options.JsonSerializerOptions),additionalHeaders );
+                message.TaskId, error, _options.JsonSerializerOptions), additionalHeaders)
+            .ConfigureAwait(false);
+        _cancellationRegistry.Remove(message.OperationId, message.TaskId);
     }
 
 
-    public Task CompleteTask(IOperationTaskMessage message, IDictionary<string,string>? additionalHeaders = null)
+    public async Task CompleteTask(IOperationTaskMessage message, IDictionary<string,string>? additionalHeaders = null)
     {
-        return _bus.SendWorkflowEvent(_options,
+        await _bus.SendWorkflowEvent(_options,
             OperationTaskStatusEvent.Completed(
-                message.OperationId, message.InitiatingTaskId, message.TaskId), additionalHeaders);
+                message.OperationId, message.InitiatingTaskId, message.TaskId), additionalHeaders)
+            .ConfigureAwait(false);
+        _cancellationRegistry.Remove(message.OperationId, message.TaskId);
     }
 
-    public Task CompleteTask(IOperationTaskMessage message, object responseMessage, IDictionary<string,string>? additionalHeaders = null)
+    public async Task CompleteTask(IOperationTaskMessage message, object responseMessage, IDictionary<string,string>? additionalHeaders = null)
     {
-        return _bus.SendWorkflowEvent(_options,
+        await _bus.SendWorkflowEvent(_options,
             OperationTaskStatusEvent.Completed(
-                message.OperationId, message.InitiatingTaskId, message.TaskId, responseMessage, 
-                _options.JsonSerializerOptions), additionalHeaders);
+                message.OperationId, message.InitiatingTaskId, message.TaskId, responseMessage,
+                _options.JsonSerializerOptions), additionalHeaders)
+            .ConfigureAwait(false);
+        _cancellationRegistry.Remove(message.OperationId, message.TaskId);
+    }
+
+    public async Task CancelTask(IOperationTaskMessage message, IDictionary<string,string>? additionalHeaders = null)
+    {
+        await _bus.SendWorkflowEvent(_options,
+            OperationTaskStatusEvent.Cancelled(
+                message.OperationId, message.InitiatingTaskId, message.TaskId), additionalHeaders)
+            .ConfigureAwait(false);
+        _cancellationRegistry.Remove(message.OperationId, message.TaskId);
+    }
+
+    public CancellationToken GetCancellationToken(IOperationTaskMessage message)
+    {
+        return _cancellationRegistry.Register(message.OperationId, message.TaskId);
     }
 
 

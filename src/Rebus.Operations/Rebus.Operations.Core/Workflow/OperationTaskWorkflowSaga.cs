@@ -32,6 +32,9 @@ public abstract class OperationTaskWorkflowSaga<TMessage, TSagaData> : Saga<TSag
 
     public Task Handle(OperationTaskStatusEvent<TMessage> message)
     {
+        if (message.OperationCancelled)
+            return InitiatingTaskCancelled();
+
         return message.OperationFailed ? InitiatingTaskFailed() : InitiatingTaskCompleted();
     }
 
@@ -50,6 +53,12 @@ public abstract class OperationTaskWorkflowSaga<TMessage, TSagaData> : Saga<TSag
     }
 
     private Task InitiatingTaskFailed()
+    {
+        MarkAsComplete();
+        return Task.CompletedTask;
+    }
+
+    private Task InitiatingTaskCancelled()
     {
         MarkAsComplete();
         return Task.CompletedTask;
@@ -83,6 +92,12 @@ public abstract class OperationTaskWorkflowSaga<TMessage, TSagaData> : Saga<TSag
             WorkflowEngine.WorkflowOptions.JsonSerializerOptions));
     }
 
+    protected Task Cancel()
+    {
+        return WorkflowEngine.Messaging.DispatchTaskStatusEventAsync(OperationTaskStatusEvent.Cancelled(
+            Data.OperationId, Data.ParentTaskId, Data.SagaTaskId));
+    }
+
     protected async Task FailOrRun<TCommand>(
         OperationTaskStatusEvent<TCommand> message,
         Func<Task> completedFunc)
@@ -90,6 +105,12 @@ public abstract class OperationTaskWorkflowSaga<TMessage, TSagaData> : Saga<TSag
     {
         if (message.InitiatingTaskId != Data.SagaTaskId)
             return;
+
+        if (message.OperationCancelled)
+        {
+            await Cancel().ConfigureAwait(false);
+            return;
+        }
 
         if (message.OperationFailed)
         {
@@ -108,6 +129,12 @@ public abstract class OperationTaskWorkflowSaga<TMessage, TSagaData> : Saga<TSag
     {
         if (message.InitiatingTaskId != Data.SagaTaskId)
             return;
+
+        if (message.OperationCancelled)
+        {
+            await Cancel().ConfigureAwait(false);
+            return;
+        }
 
         if (message.OperationFailed)
         {

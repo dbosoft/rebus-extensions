@@ -21,6 +21,7 @@ public abstract class RebusTestBase : IDisposable
 
     private readonly BuiltinHandlerActivator _activator = new();
     private readonly IMessageEnricher _messageEnricher;
+    private readonly ITaskCancellationRegistry _cancellationRegistry = new TaskCancellationRegistry();
     private readonly IBus _bus;
     private readonly IBusStarter _busStarter;
     private readonly WorkflowEventDispatchMode _dispatchMode;
@@ -31,8 +32,9 @@ public abstract class RebusTestBase : IDisposable
     protected RebusTestBase(
         ITestOutputHelper output,
         WorkflowEventDispatchMode dispatchMode,
-        bool useTypeBasedRouting)
-        : this(output, dispatchMode, useTypeBasedRouting, new DefaultMessageEnricher())
+        bool useTypeBasedRouting,
+        bool concurrent = false)
+        : this(output, dispatchMode, useTypeBasedRouting, new DefaultMessageEnricher(), concurrent)
     {
     }
 
@@ -40,7 +42,8 @@ public abstract class RebusTestBase : IDisposable
         ITestOutputHelper output,
         WorkflowEventDispatchMode dispatchMode,
         bool useTypeBasedRouting,
-        IMessageEnricher messageEnricher)
+        IMessageEnricher messageEnricher,
+        bool concurrent = false)
     {
         _dispatchMode = dispatchMode;
         _messageEnricher = messageEnricher;
@@ -58,7 +61,18 @@ public abstract class RebusTestBase : IDisposable
         _busStarter = Configure.With(_activator)
             .Options(o =>
             {
-                o.RetryStrategy(maxDeliveryAttempts: 1, secondLevelRetriesEnabled: true);
+                // Concurrent workers let two messages for the same operation saga run at
+                // once, which can produce an optimistic-concurrency conflict; allow Rebus
+                // to retry those instead of dead-lettering. Serial tests keep fail-fast.
+                o.RetryStrategy(maxDeliveryAttempts: concurrent ? 5 : 1, secondLevelRetriesEnabled: true);
+                o.EnableOperationCancellation(workflowOptions, _cancellationRegistry);
+                if (concurrent)
+                {
+                    // A cancellable handler stays in-flight until it is cancelled, so the
+                    // bus must be able to process the cancellation event on another worker.
+                    o.SetNumberOfWorkers(2);
+                    o.SetMaxParallelism(8);
+                }
             })
             .Transport(cfg => cfg.UseInMemoryTransport(rebusNetwork, "main"))
             .Routing(r =>
@@ -69,6 +83,10 @@ public abstract class RebusTestBase : IDisposable
                 }
             })
             .Sagas(x => x.StoreInMemory())
+            // The saga defers messages to retry a status event that arrives before its
+            // task exists; with concurrent workers that race actually fires, so a timeout
+            // manager is required (otherwise the deferred message dead-letters).
+            .Timeouts(x => x.StoreInMemory())
             .Logging(x => x.Use(new RebusTestLogging(output)))
             .Create();
         _bus = _busStarter.Bus;
@@ -85,12 +103,14 @@ public abstract class RebusTestBase : IDisposable
         _workflow = new DefaultWorkflow(
             workflowOptions, _operationManager, taskManager,
             new RebusOperationMessaging(_bus, OperationDispatcher, taskDispatcher, messageEnricher, workflowOptions));
-        _taskMessaging = new RebusTaskMessaging(_bus, workflowOptions);
+        _taskMessaging = new RebusTaskMessaging(_bus, workflowOptions, _cancellationRegistry);
 
         _activator.Register(() => new ProcessOperationSaga(_workflow, NullLogger.Instance));
         _activator.Register(() => new OperationTaskProgressEventHandler(
             _workflow, NullLogger<OperationTaskProgressEventHandler>.Instance));
         _activator.Register(() => new EmptyOperationStatusEventHandler());
+        _activator.Register(() => new OperationCancellationRequestedHandler(
+            _cancellationRegistry, NullLogger<OperationCancellationRequestedHandler>.Instance));
     }
 
     protected void AddTaskHandler<TCommand, THandler>()
@@ -138,9 +158,12 @@ public abstract class RebusTestBase : IDisposable
     {
         if (!disposing)
             return;
-        
+
         _bus.Dispose();
         _activator.Dispose();
+        // Dispose the registry too, so a test that fails before terminal cleanup does
+        // not leak its CancellationTokenSource instances until process exit.
+        (_cancellationRegistry as IDisposable)?.Dispose();
     }
 
     public void Dispose()

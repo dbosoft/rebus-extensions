@@ -44,7 +44,12 @@ public static class SimpleInjectorExtensions
         container.RegisterConditional<ITaskMessaging, RebusTaskMessaging>(Lifestyle.Scoped, c=> !c.Handled);
         container.RegisterConditional<IMessageEnricher, DefaultMessageEnricher>(Lifestyle.Scoped, c=> !c.Handled);
 
+        // The cancellation registry bridges the cancellation-event handler and the
+        // running task handlers, so it must be a process-wide singleton.
+        container.RegisterConditional<ITaskCancellationRegistry, TaskCancellationRegistry>(Lifestyle.Singleton, c=> !c.Handled);
+
         container.Collection.Append(typeof(IHandleMessages<>), typeof(IncomingTaskMessageHandler<>), Lifestyle.Scoped);
+        container.Collection.Append(typeof(IHandleMessages<>), typeof(OperationCancellationRequestedHandler), Lifestyle.Scoped);
 
         return container;
     }
