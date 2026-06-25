@@ -75,6 +75,10 @@ public abstract class RebusTestBase : IDisposable
                 }
             })
             .Sagas(x => x.StoreInMemory())
+            // The saga defers messages to retry a status event that arrives before its
+            // task exists; with concurrent workers that race actually fires, so a timeout
+            // manager is required (otherwise the deferred message dead-letters).
+            .Timeouts(x => x.StoreInMemory())
             .Logging(x => x.Use(new RebusTestLogging(output)))
             .Create();
         _bus = _busStarter.Bus;
