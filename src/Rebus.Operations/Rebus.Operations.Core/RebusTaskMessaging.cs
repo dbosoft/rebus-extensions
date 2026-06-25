@@ -28,39 +28,42 @@ public class RebusTaskMessaging : ITaskMessaging
         return FailTask(message, new ErrorData { ErrorMessage = errorMessage }, additionalHeaders);
     }
 
-    public Task FailTask(IOperationTaskMessage message, ErrorData error, IDictionary<string,string>? additionalHeaders = null)
+    // All terminal paths report the status event first and only drop the cancellation
+    // registration after the send succeeds. If the send fails the message is retried with
+    // the registration still in place, so the retried handler observes the existing (possibly
+    // already cancelled) token instead of registering a fresh, non-cancelled one.
+    public async Task FailTask(IOperationTaskMessage message, ErrorData error, IDictionary<string,string>? additionalHeaders = null)
     {
-        _cancellationRegistry.Remove(message.OperationId, message.TaskId);
-        return _bus.SendWorkflowEvent(_options,
+        await _bus.SendWorkflowEvent(_options,
             OperationTaskStatusEvent.Failed(
                 message.OperationId, message.InitiatingTaskId,
-                message.TaskId, error,_options.JsonSerializerOptions),additionalHeaders );
+                message.TaskId, error, _options.JsonSerializerOptions), additionalHeaders)
+            .ConfigureAwait(false);
+        _cancellationRegistry.Remove(message.OperationId, message.TaskId);
     }
 
 
-    public Task CompleteTask(IOperationTaskMessage message, IDictionary<string,string>? additionalHeaders = null)
+    public async Task CompleteTask(IOperationTaskMessage message, IDictionary<string,string>? additionalHeaders = null)
     {
-        _cancellationRegistry.Remove(message.OperationId, message.TaskId);
-        return _bus.SendWorkflowEvent(_options,
+        await _bus.SendWorkflowEvent(_options,
             OperationTaskStatusEvent.Completed(
-                message.OperationId, message.InitiatingTaskId, message.TaskId), additionalHeaders);
+                message.OperationId, message.InitiatingTaskId, message.TaskId), additionalHeaders)
+            .ConfigureAwait(false);
+        _cancellationRegistry.Remove(message.OperationId, message.TaskId);
     }
 
-    public Task CompleteTask(IOperationTaskMessage message, object responseMessage, IDictionary<string,string>? additionalHeaders = null)
+    public async Task CompleteTask(IOperationTaskMessage message, object responseMessage, IDictionary<string,string>? additionalHeaders = null)
     {
-        _cancellationRegistry.Remove(message.OperationId, message.TaskId);
-        return _bus.SendWorkflowEvent(_options,
+        await _bus.SendWorkflowEvent(_options,
             OperationTaskStatusEvent.Completed(
                 message.OperationId, message.InitiatingTaskId, message.TaskId, responseMessage,
-                _options.JsonSerializerOptions), additionalHeaders);
+                _options.JsonSerializerOptions), additionalHeaders)
+            .ConfigureAwait(false);
+        _cancellationRegistry.Remove(message.OperationId, message.TaskId);
     }
 
     public async Task CancelTask(IOperationTaskMessage message, IDictionary<string,string>? additionalHeaders = null)
     {
-        // Report first, then drop the registration. If the send fails the message is
-        // retried with the registration still in place, so the retried handler observes
-        // the (still cancelled) token rather than registering a fresh, non-cancelled one
-        // (same retry-safe ordering as OperationCancellationStep).
         await _bus.SendWorkflowEvent(_options,
             OperationTaskStatusEvent.Cancelled(
                 message.OperationId, message.InitiatingTaskId, message.TaskId), additionalHeaders)
