@@ -88,6 +88,21 @@ public class CancellationTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public async Task Opted_in_handler_that_fails_with_an_ordinary_exception_ends_failed()
+    {
+        AddTaskHandler<OptInThenFailCommand, OptInThenFailCommandHandler>();
+        await StartBus();
+
+        var operation = await OperationDispatcher.StartNew<OptInThenFailCommand>();
+        await WaitForOperation(operation.Id);
+
+        // The opt-in registration is cleaned up on the failure path (see OperationCancellationStep);
+        // the task surfaces as a normal failure.
+        Store.AllOperations.Should().ContainSingle()
+            .Which.Status.Should().Be(OperationStatus.Failed);
+    }
+
+    [Fact]
     public async Task Cancellation_propagates_through_a_saga_task_tree()
     {
         CancellableCommandHandler.Reset();
