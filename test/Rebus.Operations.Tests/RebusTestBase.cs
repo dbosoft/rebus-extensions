@@ -158,9 +158,12 @@ public abstract class RebusTestBase : IDisposable
     {
         if (!disposing)
             return;
-        
+
         _bus.Dispose();
         _activator.Dispose();
+        // Dispose the registry too, so a test that fails before terminal cleanup does
+        // not leak its CancellationTokenSource instances until process exit.
+        (_cancellationRegistry as IDisposable)?.Dispose();
     }
 
     public void Dispose()
