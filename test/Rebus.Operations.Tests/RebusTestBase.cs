@@ -21,6 +21,7 @@ public abstract class RebusTestBase : IDisposable
 
     private readonly BuiltinHandlerActivator _activator = new();
     private readonly IMessageEnricher _messageEnricher;
+    private readonly ITaskCancellationRegistry _cancellationRegistry = new TaskCancellationRegistry();
     private readonly IBus _bus;
     private readonly IBusStarter _busStarter;
     private readonly WorkflowEventDispatchMode _dispatchMode;
@@ -59,6 +60,11 @@ public abstract class RebusTestBase : IDisposable
             .Options(o =>
             {
                 o.RetryStrategy(maxDeliveryAttempts: 1, secondLevelRetriesEnabled: true);
+                o.EnableOperationCancellation(workflowOptions, _cancellationRegistry);
+                // A cancellable handler stays in-flight until it is cancelled, so the
+                // bus must be able to process the cancellation event concurrently.
+                o.SetNumberOfWorkers(2);
+                o.SetMaxParallelism(8);
             })
             .Transport(cfg => cfg.UseInMemoryTransport(rebusNetwork, "main"))
             .Routing(r =>
@@ -85,12 +91,14 @@ public abstract class RebusTestBase : IDisposable
         _workflow = new DefaultWorkflow(
             workflowOptions, _operationManager, taskManager,
             new RebusOperationMessaging(_bus, OperationDispatcher, taskDispatcher, messageEnricher, workflowOptions));
-        _taskMessaging = new RebusTaskMessaging(_bus, workflowOptions);
+        _taskMessaging = new RebusTaskMessaging(_bus, workflowOptions, _cancellationRegistry);
 
         _activator.Register(() => new ProcessOperationSaga(_workflow, NullLogger.Instance));
         _activator.Register(() => new OperationTaskProgressEventHandler(
             _workflow, NullLogger<OperationTaskProgressEventHandler>.Instance));
         _activator.Register(() => new EmptyOperationStatusEventHandler());
+        _activator.Register(() => new OperationCancellationRequestedHandler(
+            _cancellationRegistry, NullLogger<OperationCancellationRequestedHandler>.Instance));
     }
 
     protected void AddTaskHandler<TCommand, THandler>()

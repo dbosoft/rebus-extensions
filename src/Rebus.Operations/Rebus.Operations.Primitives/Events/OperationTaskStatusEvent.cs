@@ -14,32 +14,44 @@ public class OperationTaskStatusEvent : OperationTaskStatusEventBase
     }
 
     protected OperationTaskStatusEvent(Guid operationId, Guid initiatingTaskId, Guid taskId, bool failed,
+        bool cancelled,
         string? messageType,
-        string? messageData) : base(operationId, initiatingTaskId, taskId, DateTimeOffset.UtcNow,  failed, messageType, messageData)
+        string? messageData) : base(operationId, initiatingTaskId, taskId, DateTimeOffset.UtcNow, failed, cancelled, messageType, messageData)
     {
 
     }
-        
+
     public static OperationTaskStatusEvent Failed(Guid operationId, Guid initiatingTaskId, Guid taskId)
     {
-        return new OperationTaskStatusEvent(operationId, initiatingTaskId, taskId, true, null, null);
+        return new OperationTaskStatusEvent(operationId, initiatingTaskId, taskId, true, false, null, null);
     }
 
     public static OperationTaskStatusEvent Failed(Guid operationId, Guid initiatingTaskId, Guid taskId, object? message, JsonSerializerOptions serializerOptions)
     {
         var (data, typeName) = SerializeMessage(message, serializerOptions);
-        return new OperationTaskStatusEvent(operationId, initiatingTaskId, taskId, true, typeName, data);
+        return new OperationTaskStatusEvent(operationId, initiatingTaskId, taskId, true, false, typeName, data);
     }
 
     public static OperationTaskStatusEvent Completed(Guid operationId, Guid initiatingTaskId, Guid taskId)
     {
-        return new OperationTaskStatusEvent(operationId, initiatingTaskId, taskId, false, null, null);
+        return new OperationTaskStatusEvent(operationId, initiatingTaskId, taskId, false, false, null, null);
     }
 
     public static OperationTaskStatusEvent Completed(Guid operationId, Guid initiatingTaskId, Guid taskId, object? message, JsonSerializerOptions serializerOptions)
     {
         var (data, typeName) = SerializeMessage(message, serializerOptions);
-        return new OperationTaskStatusEvent(operationId, initiatingTaskId,taskId, false, typeName, data);
+        return new OperationTaskStatusEvent(operationId, initiatingTaskId,taskId, false, false, typeName, data);
+    }
+
+    public static OperationTaskStatusEvent Cancelled(Guid operationId, Guid initiatingTaskId, Guid taskId)
+    {
+        return new OperationTaskStatusEvent(operationId, initiatingTaskId, taskId, false, true, null, null);
+    }
+
+    public static OperationTaskStatusEvent Cancelled(Guid operationId, Guid initiatingTaskId, Guid taskId, object? message, JsonSerializerOptions serializerOptions)
+    {
+        var (data, typeName) = SerializeMessage(message, serializerOptions);
+        return new OperationTaskStatusEvent(operationId, initiatingTaskId, taskId, false, true, typeName, data);
     }
 
 }
@@ -55,7 +67,7 @@ public class OperationTaskStatusEvent<T> : OperationTaskStatusEventBase where T 
 
     // ReSharper disable once SuggestBaseTypeForParameterInConstructor
     public OperationTaskStatusEvent(OperationTaskStatusEvent message) :
-        base(message.OperationId, message.InitiatingTaskId, message.TaskId, message.Created, message.OperationFailed, message.MessageType, message.MessageData)
+        base(message.OperationId, message.InitiatingTaskId, message.TaskId, message.Created, message.OperationFailed, message.OperationCancelled, message.MessageType, message.MessageData)
     {
     }
 }

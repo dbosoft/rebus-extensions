@@ -2,8 +2,11 @@
 
 public enum OperationStatus
 {
-    Queued,
-    Running,
-    Failed,
-    Completed
+    // Explicit values: these are persisted as integers by consumers, so the
+    // ordinals must stay stable. Append new members, never reorder.
+    Queued = 0,
+    Running = 1,
+    Failed = 2,
+    Completed = 3,
+    Cancelled = 4
 }

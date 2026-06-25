@@ -22,6 +22,7 @@ public static class OperationsSetup
         await bus.Subscribe<OperationTaskProgressEvent>().ConfigureAwait(false);
         await bus.Subscribe<OperationTaskStatusEvent>().ConfigureAwait(false);
         await bus.Subscribe<OperationTimeoutEvent>().ConfigureAwait(false);
+        await bus.Subscribe<OperationCancellationRequestedEvent>().ConfigureAwait(false);
 
         return bus;
     }

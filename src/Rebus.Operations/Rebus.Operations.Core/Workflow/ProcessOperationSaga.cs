@@ -243,12 +243,16 @@ public class ProcessOperationSaga : Saga<OperationSagaData>,
             }
         }
 
+        var newTaskStatus = message.OperationCancelled
+            ? OperationTaskStatus.Cancelled
+            : message.OperationFailed
+                ? OperationTaskStatus.Failed
+                : OperationTaskStatus.Completed;
+
         var taskOldStatus = task.Status;
         if(await _workflow.Tasks.TryChangeStatusAsync(task,
-               message.OperationFailed
-                   ? OperationTaskStatus.Failed
-                   : OperationTaskStatus.Completed
-               ,message.Created, 
+               newTaskStatus
+               ,message.Created,
                message.GetMessage(_workflow.WorkflowOptions.JsonSerializerOptions)).ConfigureAwait(false))
 
             if(taskOldStatus != task.Status)
@@ -262,9 +266,11 @@ public class ProcessOperationSaga : Saga<OperationSagaData>,
         if (message.TaskId == Data.PrimaryTaskId)
         {
 
-            var newStatus = message.OperationFailed
-                ? OperationStatus.Failed
-                : OperationStatus.Completed;
+            var newStatus = message.OperationCancelled
+                ? OperationStatus.Cancelled
+                : message.OperationFailed
+                    ? OperationStatus.Failed
+                    : OperationStatus.Completed;
 
             _log.LogDebug("Operation Workflow {operationId}: Primary task changed, updating operation status to {newStatus}",
                 message.OperationId, newStatus);
@@ -286,8 +292,8 @@ public class ProcessOperationSaga : Saga<OperationSagaData>,
         }
         else
         {
-            // capture failed operations and send status events to initiating task
-            if (message.OperationFailed)
+            // capture failed or cancelled operations and send status events to initiating task
+            if (message.OperationFailed || message.OperationCancelled)
             {
                 var initiatingTask = await _workflow.Tasks
                     .GetByIdAsync(message.TaskId)
