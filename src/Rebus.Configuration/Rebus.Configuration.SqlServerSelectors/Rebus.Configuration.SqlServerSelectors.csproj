@@ -11,6 +11,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Dbosoft.Rebus.Configuration.Selectors.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Rebus.Configuration.Selectors\Rebus.Configuration.Selectors.csproj" />
   </ItemGroup>
 
