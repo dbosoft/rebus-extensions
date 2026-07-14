@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Rebus.Configuration\Rebus.Configuration.Selectors\Rebus.Configuration.Selectors.csproj" />
+    <ProjectReference Include="..\..\..\src\Rebus.Configuration\Rebus.Configuration.SqlServerSelectors\Rebus.Configuration.SqlServerSelectors.csproj" />
   </ItemGroup>
 
 </Project>
